@@ -15,12 +15,20 @@ fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year),
 
 %cantVecescompartidas y likes son para las funciones opcionales
 %comentario= [IDPost,ID,[ID,contenido,likes]]
+%---------------------------------------------------------------------------------------------------------------------------
+existeUsuario(Uid,U,P,D,UF,[[Uid,U,P,D,UF] |_]).
+existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
 
-socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
 
 
+%--------------------------------------------------------------------------------------------------------------------------
+socialNetwork(N,Date,[N,Date,-1,[0],[0],["comentarios"]]):- string(N), fecha(_,_,_,Date).
 
 %encabezado
 %socialNetworkRegister(S1, “2021-05-01”, “user”, “pass”, S2)
 
 socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,["seguidores"]]],Ps,Cm]).
+socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,["seguidores"]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
+not(existeUsuario(_,NU,_,_,_,Us)),
+NLid is Lid + 1,
+not(NU = U).
