@@ -16,19 +16,24 @@ fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year),
 %cantVecescompartidas y likes son para las funciones opcionales
 %comentario= [IDPost,ID,[ID,contenido,likes]]
 %---------------------------------------------------------------------------------------------------------------------------
+%existeUsuario(Uid,U,P,D,UF,Users)
 existeUsuario(Uid,U,P,D,UF,[[Uid,U,P,D,UF] |_]).
 existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
 
 
 
 %--------------------------------------------------------------------------------------------------------------------------
+%socialNetwork(N,Date,SocialNetwork)
 socialNetwork(N,Date,[N,Date,-1,[0],[0],["comentarios"]]):- string(N), fecha(_,_,_,Date).
 
 %encabezado
-%socialNetworkRegister(S1, “2021-05-01”, “user”, “pass”, S2)
+%socialNetworkRegister(SocialNetworkIn,NewD,NU,NP,SocialNetworkOut)
 
 socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,["seguidores"]]],Ps,Cm]).
 socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,["seguidores"]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
 not(existeUsuario(_,NU,_,_,_,Us)),
 NLid is Lid + 1,
 not(NU = U).
+
+%socialNetworkLogin(SocialNetworkIn,U,P,SocialNetworkOut)
+socialNetworkLogin([N,D,-1,Us,Ps,Cm],U,P,[N,D,Uid,Us,Ps,Cm]):- existeUsuario(Uid,U,P,_,_,Us).
