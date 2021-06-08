@@ -1,4 +1,5 @@
 %fecha = [dia,mes,anio]
+%fecha(Day,Month,Year)
 fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year), Day > 0,
     Month > 0, Year > 0, Day =< 31, Month =< 12.
 
@@ -20,20 +21,31 @@ fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year),
 existeUsuario(Uid,U,P,D,UF,[[Uid,U,P,D,UF] |_]).
 existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
 
-
+%--------------------------------------------------------------------------------------------------------------------------
+%listaFollowers(Usuarios,ListaVerificar)
+listaFollowers([],_).
+listaFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
+    listaFollowers(Tail,ListaVerificar).
 
 %--------------------------------------------------------------------------------------------------------------------------
 %socialNetwork(N,Date,SocialNetwork)
-socialNetwork(N,Date,[N,Date,-1,[0],[0],["comentarios"]]):- string(N), fecha(_,_,_,Date).
+socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
 
 %encabezado
 %socialNetworkRegister(SocialNetworkIn,NewD,NU,NP,SocialNetworkOut)
 
-socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,["seguidores"]]],Ps,Cm]).
-socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,["seguidores"]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
+socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,[0]]],Ps,Cm]).
+socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,[0]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
 not(existeUsuario(_,NU,_,_,_,Us)),
 NLid is Lid + 1,
 not(NU = U).
 
 %socialNetworkLogin(SocialNetworkIn,U,P,SocialNetworkOut)
 socialNetworkLogin([N,D,-1,Us,Ps,Cm],U,P,[N,D,Uid,Us,Ps,Cm]):- existeUsuario(Uid,U,P,_,_,Us).
+%------------------------------------------------------------------------------------------------------------------------
+%ENCABEZADO
+%socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
+%publicacion = [ID,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+%caso ListaUsernamesDest = []
+%socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,LU,)
+socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,[],[N,D,-1,Us,[LPid,[LPid,F,0,TipoT,T,[U],[0]]]])
