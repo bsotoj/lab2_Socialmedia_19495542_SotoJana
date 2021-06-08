@@ -50,14 +50,18 @@ socialNetworkLogin([N,D,-1,Us,Ps,Cm],U,P,[N,D,Uid,Us,Ps,Cm]):- existeUsuario(Uid
 %publicacion = [ID,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
 %caso ListaUsernamesDest = []
 %socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,LU,)
-socialNetworkPost([N,D,Uid,[_|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,Us,[1,[1,U,F,0,TipoT,T,["dirigida a el mismo"],[0],[0]]],Cm]):-
+socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,U,F,0,TipoT,T,["dirigido a el mismo"],[0],[0]]],Cm]):-
 Uid > 0,
 string(TipoT),
 string(T),
 fecha(_,_,_,F),
 fecha(_,_,_,D),
-searchUser(Uid,U,_,_,_,_).
+existeUsuario(Uid,_,_,_,_,Us),
+searchUser(Uid,_,_,_,_,Us,[_,U,_,_,_]).
+%existeUsuario(Uid,U,P,D,UF,Users)
 
+
+%CASO -> CUANDO ES DIRIGIDO A USUARIOS
 socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LP]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,U,F,0,TipoT,T,LU,[0],[0]],[LPid,LP]|Ps],Cm]):-
   Uid > 0,
   NLPid is LPid + 1,
