@@ -21,6 +21,8 @@ fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year),
 existeUsuario(Uid,U,P,D,UF,[[Uid,U,P,D,UF] |_]).
 existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
 
+searchUser(Uid,U,P,D,UF,[[Uid,U,P,D,UF]|_], [Uid,U,P,D,UF]).
+searchUser(Uid,U,P,D,UF,[_|Us]):- searchUser(Uid,U,P,D,UF,Us).
 %--------------------------------------------------------------------------------------------------------------------------
 %listaFollowers(Usuarios,ListaVerificar)
 listaFollowers([],_).
@@ -48,4 +50,4 @@ socialNetworkLogin([N,D,-1,Us,Ps,Cm],U,P,[N,D,Uid,Us,Ps,Cm]):- existeUsuario(Uid
 %publicacion = [ID,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
 %caso ListaUsernamesDest = []
 %socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,LU,)
-socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,[],[N,D,-1,Us,[LPid,[LPid,F,0,TipoT,T,[U],[0]]]])
+socialNetworkPost([N,D,Uid,[_|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,Us,[1,[1,F,0,TipoT,T,[U],[0],[0]]],Cm]):- Uid > 0,
