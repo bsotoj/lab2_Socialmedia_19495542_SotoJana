@@ -25,10 +25,70 @@ searchUser(Uid,U,P,D,UF,[[Uid,U,P,D,UF]|_], [Uid,U,P,D,UF]).
 searchUser(Uid,U,P,D,UF,[_|Us],User):- searchUser(Uid,U,P,D,UF,Us,User).
 %--------------------------------------------------------------------------------------------------------------------------
 %listaFollowers(Usuario,ListaVerificar)
+%esto es para el post dirigido a otros usuario
 listaFollowers([],_).
 listaFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
     listaFollowers(Tail,ListaVerificar).
 
+%---------------------------------------------------------PREDICADOS QUE AUN NO HAN SIDO ORDENADOS PERO QUE FUNCIONAN---------------------------------------
+    %orden
+    %usuario
+    %contactos
+    %usuario
+    %usuarios
+    %tda completo
+
+    %selectores
+    %usuario = [ID,username,password,date,listaSeguidores(contactos)]
+    %funciona
+    %[[5,mako],[4,bastian],[3,pedro],[2,pablo],[1,juan]]
+    %id: 3 -> [3,pedro]
+    getUserbyID([[ID,Username,Password,Date,Followers]|_],ID,[ID,Username,Password,Date,Followers]):- !.
+    getUserbyID([_|Tail],ID,Usuario):-
+        getUserbyID(Tail,ID,Usuario).
+
+
+    %funciona
+    %getListbyPosition([[5,mako,[]],[4,bastian],[3,pedro],[2,pablo],[1,juan]],5,R).
+    %R:[1,juan]
+    getListbyPosition([Cabeza|_],1,Cabeza).
+    getListbyPosition([_|Cola],Posicion,Resultado):-
+        PosicionSiguiente is Posicion-1,
+        getListbyPosition(Cola,PosicionSiguiente,Resultado).
+
+    %modificadores
+    %set por posicion -> listo
+    %set por id -> listo
+
+
+    %funciona
+    %[5,mako,["juan"]]
+    %siempre se elige como posicion la 5
+    %["pedro","carlos","david"]
+
+    set_UserFollowersupdate([Cabeza|Cola],Nuevosseguidores,1,[Nuevalista|Cola]):-
+        append(Cabeza,Nuevosseguidores,Nuevalista).
+
+    set_UserFollowersupdate([Cabeza|Cola],Nuevosseguidores,Posicion,[Cabeza|Resultado]):-
+        PosicionSiguiente is Posicion-1,
+        set_UserFollowersupdate(Cola,Nuevosseguidores,PosicionSiguiente,Resultado).
+
+    %funciona
+    %modificador los usuarios con el user con los followers agregados
+    %modificador([[IDU,_,_]|Cola],IDU,Elemento,[Elemento|Cola]).
+    %modificador([[ID,Nombre,Followers]|Cola],IDU,Elemento,[[ID,Nombre,Followers]|Resultado]):-
+    %    modificador(Cola,IDU,Elemento,Resultado).
+
+    %usuario = [ID,username,password,date,listaSeguidores(contactos)]
+    set_UsersUpdate([[IDU,_,_,_,_]|Cola],IDU,UsuarioModificado,[UsuarioModificado|Cola]).
+    set_UsersUpdate([[ID,Username,Password,Date,Followers]|Cola],IDU,UsuarioModificado,[[ID,Username,Password,Date,Followers]|Resultado]):-
+        set_UsersUpdate(Cola,IDU,UsuarioModificado,Resultado).
+
+    %para modificar el TDA SocialNetwork
+    set_ActualizarLista([_|Colalista],Elemento,1,[Elemento|Colalista]).
+    set_ActualizarLista([Cabezalista|Colalista],Elemento,Posicion,[Cabezalista|Resultado]):- ContPosicion is Posicion-1,
+    	set_ActualizarLista(Colalista,Elemento,ContPosicion,Resultado).
+%--------------------------------------------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------------------------
 %socialNetwork(N,Date,SocialNetwork)
 socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
