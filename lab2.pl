@@ -89,22 +89,25 @@ listaFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
     set_ActualizarLista([Cabezalista|Colalista],Elemento,Posicion,[Cabezalista|Resultado]):- ContPosicion is Posicion-1,
     	set_ActualizarLista(Colalista,Elemento,ContPosicion,Resultado).
 %--------------------------------------------------------------------------------------------------------------------------------------------
-%--------------------------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------REGISTER--------------------------------------------------
 %socialNetwork(N,Date,SocialNetwork)
 socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
 
 %encabezado
 %socialNetworkRegister(SocialNetworkIn,NewD,NU,NP,SocialNetworkOut)
 
-socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,[0]]],Ps,Cm]).
-socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,[0]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
+socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,[]]],Ps,Cm]).
+socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,[]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
 not(existeUsuario(_,NU,_,_,_,Us)),
 NLid is Lid + 1,
 not(NU = U).
 
+
+%---------------------------------------------------LOGIN------------------------------------------------------------
 %socialNetworkLogin(SocialNetworkIn,U,P,SocialNetworkOut)
 socialNetworkLogin([N,D,-1,Us,Ps,Cm],U,P,[N,D,Uid,Us,Ps,Cm]):- existeUsuario(Uid,U,P,_,_,Us).
-%------------------------------------------------------------------------------------------------------------------------
+socialNetworkLogout([N, D, UId, Us, Ps, Cm],[N, D, -1, Us, Ps, Cm]):-UId > -1.
+%-----------------------------------------------POST-------------------------------------------------------------
 %ENCABEZADO
 %socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
 %publicacion = [ID,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
@@ -132,7 +135,7 @@ socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps]
   fecha(_,_,_,D),
   existeUsuario(Uid,_,_,_,_,Us),
   searchUser(Uid,_,_,_,_,Us,[_,U,_,_,_]).
-%------------------------------------------------------------------------------------------------------------------------------
+
 %CASO -> CUANDO ES DIRIGIDO A USUARIOS
 %socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LP]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,U,F,0,TipoT,T,LU,[0],[0]],[LPid,LP]|Ps],Cm]):-
 %  Uid > 0,
@@ -140,3 +143,16 @@ socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps]
 %  existeUsuario(Uid,U,_,_,_,Us),
 %  searchUser(Uid,U,_,_,UF,Us,_),
 %  listaFollowers(LU,UF).
+
+%------------------------------------------------------FOLLOW------------------------------------------------------------------------------
+
+%encabezado socialNetworkFollow(Sn1, Username, Sn2).
+socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
+  Uid > 0,
+  existeUsuario(_,Username,_,_,_,Us),
+  existeUsuario(Uid,_,_,_,_,Us),
+  getUserbyID(Us,Uid,Usuario),
+  set_UserFollowersupdate(Usuario,[Username],5,UsuarioModificado),
+  set_UsersUpdate(Us,Uid,UsuarioModificado,NewUsers),
+  set_ActualizarLista([N,D,Uid,[Lid|Us],Ps,Cm],[Lid|NewUsers],4,Salida),
+  socialNetworkLogout(Salida,SOut).
