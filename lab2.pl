@@ -21,14 +21,14 @@ fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year),
 existeUsuario(Uid,U,P,D,UF,[[Uid,U,P,D,UF] |_]).
 existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
 
-searchUser(Uid,U,P,D,UF,[[Uid,U,P,D,UF]|_], [Uid,U,P,D,UF]).
-searchUser(Uid,U,P,D,UF,[_|Us],User):- searchUser(Uid,U,P,D,UF,Us,User).
+%searchUser(Uid,U,P,D,UF,[[Uid,U,P,D,UF]|_], [Uid,U,P,D,UF]).
+%searchUser(Uid,U,P,D,UF,[_|Us],User):- searchUser(Uid,U,P,D,UF,Us,User).
 %--------------------------------------------------------------------------------------------------------------------------
-%listaFollowers(Usuario,ListaVerificar)
+%seEncuentraenFollowers(UsuariosAverificar,ListaVerificar)
 %esto es para el post dirigido a otros usuario
-listaFollowers([],_).
-listaFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
-    listaFollowers(Tail,ListaVerificar).
+seEncuentraenFollowers([],_).
+seEncuentraenFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
+    seEncuentraenFollowers(Tail,ListaVerificar).
 
 %---------------------------------------------------------PREDICADOS QUE AUN NO HAN SIDO ORDENADOS PERO QUE FUNCIONAN---------------------------------------
     %orden
@@ -110,23 +110,27 @@ socialNetworkLogout([N, D, UId, Us, Ps, Cm],[N, D, -1, Us, Ps, Cm]):-UId > -1.
 %-----------------------------------------------POST-------------------------------------------------------------
 %ENCABEZADO
 %socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
-%publicacion = [ID,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+%publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
 %caso ListaUsernamesDest = []
 %socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,LU,)
+
+
 %CASO -> CUANDO ES DIRIGIDO HACIA EL MISMO
 %CUANDO ES EL PRIMER POST
-socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,U,F,0,TipoT,T,["dirigido a el mismo"],[0],[0]]],Cm]):-
+socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,["dirigido a el mismo"],[0],[0]]],Cm]):-
 Uid > 0,
 string(TipoT),
 string(T),
 fecha(_,_,_,F),
 fecha(_,_,_,D),
 existeUsuario(Uid,_,_,_,_,Us),
-searchUser(Uid,_,_,_,_,Us,[_,U,_,_,_]).
+getUserbyID(Us,Uid,[_,U,_,_,_]).
+
+%[ID,Username,Password,Date,Followers]
 %existeUsuario(Uid,U,P,D,UF,Users)
 %CUANDO YA EXISTEN POST
 
-socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[NLPid,[NLPid,U,F,0,TipoT,T,["dirigido a el mismo"],[0],[0]],[LPid,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
+socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,["dirigido a el mismo"],[0],[0]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
   Uid > 0,
   NLPid is LPid + 1,
   string(TipoT),
@@ -134,9 +138,27 @@ socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps]
   fecha(_,_,_,F),
   fecha(_,_,_,D),
   existeUsuario(Uid,_,_,_,_,Us),
-  searchUser(Uid,_,_,_,_,Us,[_,U,_,_,_]).
+  getUserbyID(Us,Uid,[_,U,_,_,_]).
 
 %CASO -> CUANDO ES DIRIGIDO A USUARIOS
+%PRIMER POST
+%seEncuentraenFollowers(Usuario,ListaVerificar)
+%socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
+socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,LU,[0],[0]]],Cm]):-
+  Uid > 0,
+  existeUsuario(Uid,_,_,_,_,Us),
+  getUserbyID(Us,Uid,[_,U,_,_,Followers]),
+  seEncuentraenFollowers(LU,Followers).
+
+%CUANDO YA EXISTEN POST
+socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,LU,[0],[0]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
+  Uid > 0,
+  NLPid is LPid + 1,
+  existeUsuario(Uid,_,_,_,_,Us),
+  getUserbyID(Us,Uid,[_,U,_,_,Followers]),
+  seEncuentraenFollowers(LU,Followers).
+
+
 %socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LP]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,U,F,0,TipoT,T,LU,[0],[0]],[LPid,LP]|Ps],Cm]):-
 %  Uid > 0,
 %  NLPid is LPid + 1,
