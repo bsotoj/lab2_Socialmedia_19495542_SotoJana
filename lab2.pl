@@ -117,7 +117,7 @@ socialNetworkLogout([N, D, UId, Us, Ps, Cm],[N, D, -1, Us, Ps, Cm]):-UId > -1.
 
 %CASO -> CUANDO ES DIRIGIDO HACIA EL MISMO
 %CUANDO ES EL PRIMER POST
-socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,["dirigido a el mismo"],[0],[0]]],Cm]):-
+socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,["Todos"],[0],[0]]],Cm]):-
 Uid > 0,
 string(TipoT),
 string(T),
@@ -130,7 +130,7 @@ getUserbyID(Us,Uid,[_,U,_,_,_]).
 %existeUsuario(Uid,U,P,D,UF,Users)
 %CUANDO YA EXISTEN POST
 
-socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,["dirigido a el mismo"],[0],[0]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
+socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,["Todos"],[0],[0]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
   Uid > 0,
   NLPid is LPid + 1,
   string(TipoT),
@@ -178,3 +178,28 @@ socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
   set_UsersUpdate(Us,Uid,UsuarioModificado,NewUsers),
   set_ActualizarLista([N,D,Uid,[Lid|Us],Ps,Cm],[Lid|NewUsers],4,Salida),
   socialNetworkLogout(Salida,SOut).
+
+%--------------------------------------------------SHARE-----------------------------------------------------------------------------------
+%socialNetworkShare(Sn1, “2021-04-30”, 54, [“u1”, “u5”], Sn2).
+socialNetworkShare()
+
+
+["failbok", [24, 5, 2021], -1, [3, [3, "juan", "asd", [1, 1, 1111], []], [2, "camilo", "asd", [1, 1, 1111], ["juan", "pedro"]],
+[1, "pedro", "asd", [1, 1, 1111], []]],
+[3,
+[3, 2, "camilo", [9, 9, 9999], 0, "video", "segundo post a amigos", ["pedro"], [], ["likes"]],
+[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[21, 6, 2021], "camilo", "Todos"], ["likes"]],
+[1, 2, "camilo", [9, 9, 9999], 0, "video", "miPrimerPost", ["Todos"], [[22, 6, 2021], "camilo", "juan", "pedro", [9, 8, 3001], "camilo", "pedro"], ["likes"]]], [0]]
+
+%--------------------------------------------------------------------------------------------------------------------------------------------------------------
+%esto es para el predicado socialnetworktostrings
+userTostring([_,Username,_,_,ListaSeguidores],STRuser):-
+    	atomics_to_string([Username,"Sigue a: "], '\n' , UserStrRepr),
+        atomics_to_string(ListaSeguidores,'\n', FollowersStrRepr),
+        atomics_to_string([UserStrRepr, FollowersStrRepr],'\n', STRuser).
+
+usersToSTR([], []) :- !.
+usersToSTR([UserActual|UserSiguiente],[StruserActual|StruserSgte]):-
+    userTostring(UserActual,StrUser),
+    string_concat(StrUser,"\n",StruserActual),
+    usersToSTR(UserSiguiente,StruserSgte).
