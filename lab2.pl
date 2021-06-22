@@ -193,6 +193,7 @@ socialNetworkShare()
 
 %--------------------------------------------------------------------------------------------------------------------------------------------------------------
 %esto es para el predicado socialnetworktostrings
+%USUARIOS
 userTostring([_,Username,_,_,ListaSeguidores],STRuser):-
     	atomics_to_string([Username,"Sigue a: "], '\n' , UserStrRepr),
         atomics_to_string(ListaSeguidores,'\n', FollowersStrRepr),
@@ -203,3 +204,42 @@ usersToSTR([UserActual|UserSiguiente],[StruserActual|StruserSgte]):-
     userTostring(UserActual,StrUser),
     string_concat(StrUser,"\n",StruserActual),
     usersToSTR(UserSiguiente,StruserSgte).
+%PUBLICACIONES
+dirigidos_to_string([],[]):- !.
+dirigidos_to_string([PersonaActual|PersonasSgtes],[StrPersonaActual|StrPersonaSgte]):-
+  string_concat(PersonaActual," ",StrPersonaActual),
+  dirigidos_to_string(PersonasSgtes,StrPersonaSgte).
+
+compartidosTostring([],[]):- !.
+compartidosTostring([[Date,[Creador|Dirigidos]]|ShareSgte],[ShrActualSTR|ShrSgteSTR]):-
+  atomics_to_string(Date,'/',Datestr),
+  atomics_to_string(["El dia",Datestr,"por",Creador,"hacia:"],' ',Fechastr),
+  dirigidos_to_string(Dirigidos,DirigidosStr),
+  atomics_to_string(DirigidosStr,',',StrDirigidos),
+  atomics_to_string([Fechastr,StrDirigidos],'\n', STR),
+  string_concat(STR,"\n",ShrActualSTR),
+  compartidosTostring(ShareSgte,ShrSgteSTR).
+
+
+postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpost):-
+  string_concat("ID:",ID,IDstr),
+  atomics_to_string(Date,'/',Datestr),
+  atomics_to_string(["El dia",Datestr,Username,"publico\n",Mensaje],' ',Fechastr),
+  atomics_to_string(Destinatarios,' ', DSTR),
+  atomics_to_string(["Destinatarios:",DSTR],' ', DestinatariosStr),
+  string_concat("Compartidos:"," ",CompartidoStr),
+  compartidosTostring(Compartidos,CompartidosSTR),
+  atomics_to_string(CompartidosSTR,' ', ShareSTR),
+  atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR],'\n',STRpost).
+
+psTostring([],[]):- !.
+psTostring([PostActual|PostSgte],[StrpostActual|StrpostSgte]):-
+  postTostring(PostActual,STRpost),
+  string_concat(STRpost,'\n',StrpostActual),
+  psTostring(PostSgte,StrpostSgte).
+
+
+
+  psTostring(
+  [[3, 2, "camilo", [9, 9, 9999], 0, "video", "segundo post a amigos", ["pedro"], [], ["likes"]],
+  [2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[9, 8, 3001], ["camilo", "pedro"]], [[22, 6, 2021], ["camilo", "juan", "pedro"]]], ["likes"]]],STR).
