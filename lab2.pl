@@ -346,7 +346,7 @@ socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
   socialNetworkLogout(Salida,SOut).
 
   %--------------------------------------------------SHARE-----------------------------------------------------------------------------------
-  
+
 
   %publicacion = [ID,Uid,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
 
@@ -405,3 +405,14 @@ socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
       set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
 
       socialNetworkLogout(Salida,SOut).
+
+%-----------------------------------------------------------------------------------------------------------------------------------------
+%SOCIAL NETWORK TO STRING
+
+userTostring([_,Username,_,_,ListaSeguidores],STRuser):-
+
+    	atomics_to_string([Username,"Sigue a: "], '\n' , UserStrRepr),
+
+        atomics_to_string(ListaSeguidores,'\n', FollowersStrRepr),
+
+        atomics_to_string([UserStrRepr, FollowersStrRepr],'\n', STRuser).
