@@ -178,6 +178,39 @@ getPostbyID([_|Ps],IDPost,Post):-
 
 %[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[21, 6, 2021], "camilo", "Todos"], 0], [0]],
 
+%-------------------------------------------------------------------------
+
+    %funciona
+
+    %modificador los usuarios con el user con los followers agregados
+
+    %modificador([[IDU,_,_]|Cola],IDU,Elemento,[Elemento|Cola]).
+
+    %modificador([[ID,Nombre,Followers]|Cola],IDU,Elemento,[[ID,Nombre,Followers]|Resultado]):-
+
+    %    modificador(Cola,IDU,Elemento,Resultado).
+
+
+
+    %usuario = [ID,username,password,date,listaSeguidores(contactos)]
+
+    set_UsersUpdate([[IDU,_,_,_,_]|Cola],IDU,UsuarioModificado,[UsuarioModificado|Cola]).
+
+    set_UsersUpdate([[ID,Username,Password,Date,Followers]|Cola],IDU,UsuarioModificado,[[ID,Username,Password,Date,Followers]|Resultado]):-
+
+        set_UsersUpdate(Cola,IDU,UsuarioModificado,Resultado).
+
+
+
+    %para modificar el TDA SocialNetwork
+
+    set_ActualizarLista([_|Colalista],Elemento,1,[Elemento|Colalista]).
+
+    set_ActualizarLista([Cabezalista|Colalista],Elemento,Posicion,[Cabezalista|Resultado]):- ContPosicion is Posicion-1,
+
+    	set_ActualizarLista(Colalista,Elemento,ContPosicion,Resultado).
+
+%-----------------------------------------------------------------------------------------------------------------
 %-------------------------------------------------------REGISTER--------------------------------------------------
 
 %socialNetwork(N,Date,SocialNetwork)
@@ -334,16 +367,25 @@ socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS
 
 %------------------------------------------------------FOLLOW------------------------------------------------------------------------------
 
+
 %encabezado socialNetworkFollow(Sn1, Username, Sn2).
+
 socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
+
   Uid > 0,
+
   existeUsuario(_,Username,_,_,_,Us),
-  existeUsuario(Uid,_,_,_,_,Us),
+
   getUserbyID(Us,Uid,Usuario),
+
   set_UserFollowersupdate(Usuario,[Username],5,UsuarioModificado),
+
   set_UsersUpdate(Us,Uid,UsuarioModificado,NewUsers),
+
   set_ActualizarLista([N,D,Uid,[Lid|Us],Ps,Cm],[Lid|NewUsers],4,Salida),
+
   socialNetworkLogout(Salida,SOut).
+
 
   %--------------------------------------------------SHARE-----------------------------------------------------------------------------------
 
