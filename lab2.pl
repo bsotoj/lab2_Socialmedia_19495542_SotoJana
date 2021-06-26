@@ -483,3 +483,127 @@ psTostring([PostActual|PostSgte],[StrpostActual|StrpostSgte]):-
   string_concat(STRpost,'\n',StrpostActual),
 
   psTostring(PostSgte,StrpostSgte).
+%--------------------------------------------------------------------------------------------------------------------------------------
+%ToString para un usuario en especifico
+
+usPosttoString([ID,_,Username,Date,_,_,Mensaje,Destinatarios,_,_],STRpost):-
+
+    string_concat("ID:",ID,IDstr),
+
+    atomics_to_string(Date,'/',Datestr),
+
+    atomics_to_string(["El dia",Datestr,"el usuario",Username, "publico\n",Mensaje],' ',Fechastr),
+
+    atomics_to_string(Destinatarios,' ', DSTR),
+
+    atomics_to_string(["Destinatarios:",DSTR],' ', DestinatariosStr),
+
+    atomic_list_concat([IDstr,Fechastr,DestinatariosStr],'\n',STRpost).
+
+
+
+%[id,user,pass,date,followers]
+
+%userInfotoString(User,InfoSTR),
+
+userInfotoString([ID,Username,_,Date,_],STRinfo):-
+
+    string_concat("ID:",ID,IDstr),
+
+    atomics_to_string(Date,'/', Datestr),
+
+    string_concat(Datestr,'\n',NewDateSTR),
+
+    atomics_to_string([IDstr,"Nombre de usuario:",Username,"Fecha de creacion de cuenta:",NewDateSTR],
+
+                      '\n',STRinfo).
+
+
+
+%[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[9, 8, 3001], ["camilo", "pedro"]], [[22, 6, 2021], ["camilo", "juan", "pedro"]]]
+
+
+
+%ESTO ES PARA EL SHARE CUANDO UID > 0
+
+
+
+usPersonasCompartidas([],_,_,_,_,[]):- !.
+
+usPersonasCompartidas([[Date,[Username|PersonasCompartidas]]|CompartidosSgte],IDPost,CreadorPost,Username,Mensaje,[StrCompartidoActual|StrCompartidoSgte]):-
+
+    string_concat("ID:",IDPost,IDstr),
+
+    atomics_to_string(Date,'/',Datestr),
+
+    dirigidos_to_string(PersonasCompartidas,PersonasCompartidasStr),
+
+    atomics_to_string(PersonasCompartidasStr,',',StrPersonasCompartidas),
+
+    atomics_to_string(["El dia",Datestr,"compartio con", StrPersonasCompartidas, "la publicacion con",IDstr,"de",CreadorPost,":",
+
+                        Mensaje],' ',StrCompartidoActual),
+
+
+
+    usPersonasCompartidas(CompartidosSgte,IDPost,CreadorPost,Username,Mensaje,StrCompartidoSgte).
+
+
+
+usPersonasCompartidas([_|CompartidosSgte],IDPost,CreadorPost,Username,Mensaje,STR):-
+
+    usPersonasCompartidas(CompartidosSgte,IDPost,CreadorPost,Username,Mensaje,STR).
+
+
+
+
+
+%publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+
+
+
+usShareActivity([IDPost,_,CreadorPost,_,_,_,Mensaje,_,Compartidos,_],Username,STRpost):-
+
+    usPersonasCompartidas(Compartidos,IDPost,CreadorPost,Username,Mensaje,CompartidosSTRlist),
+
+    atomics_to_string(CompartidosSTRlist,'\n',STRpost).
+
+
+
+
+
+%[id,user,pass,date,followers]
+
+usPostCompartidos([],_,[]):- !.
+
+usPostCompartidos([PostActual|PostSgte],[_,Username,_,_,_],[StrpostActual|StrpostSgte]):-
+
+    usShareActivity(PostActual,Username,STRpost),
+
+    string_concat(STRpost,'\n',StrpostActual),
+
+    usPostCompartidos(PostSgte,[_,Username,_,_,_],StrpostSgte).
+
+
+
+%----------------------------------------------------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------------------------------------------------
+
+userPoststoString([],_,[]):- !.
+
+
+
+userPoststoString([[ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,_]|PostSgte],[Uid,Username,_,_,_],[StrpostActual|StrpostSgte]):-
+
+    usPosttoString([ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,_],STRpost),
+
+    string_concat(STRpost,'\n',StrpostActual),
+
+    userPoststoString(PostSgte,[Uid,Username,_,_,_],StrpostSgte).
+
+
+
+userPoststoString([_|Ps],Uid,User,StrPs):-
+
+    userPoststoString(Ps,Uid,User,StrPs).
