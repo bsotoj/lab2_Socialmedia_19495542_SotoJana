@@ -178,83 +178,159 @@ getPostbyID([_|Ps],IDPost,Post):-
 
 %[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[21, 6, 2021], "camilo", "Todos"], 0], [0]],
 
-%-------------------------------------------------------------------------
 %-------------------------------------------------------REGISTER--------------------------------------------------
+
 %socialNetwork(N,Date,SocialNetwork)
+
 socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
 
+
+
 %encabezado
+
 %socialNetworkRegister(SocialNetworkIn,NewD,NU,NP,SocialNetworkOut)
 
+
+
 socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,[]]],Ps,Cm]).
+
 socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,[]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
+
 not(existeUsuario(_,NU,_,_,_,Us)),
+
 NLid is Lid + 1,
+
 not(NU = U).
 
 
+
+
+
 %---------------------------------------------------LOGIN------------------------------------------------------------
+
 %socialNetworkLogin(SocialNetworkIn,U,P,SocialNetworkOut)
+
 socialNetworkLogin([N,D,-1,Us,Ps,Cm],U,P,[N,D,Uid,Us,Ps,Cm]):- existeUsuario(Uid,U,P,_,_,Us).
+
 socialNetworkLogout([N, D, UId, Us, Ps, Cm],[N, D, -1, Us, Ps, Cm]):-UId > -1.
+
 %-----------------------------------------------POST-------------------------------------------------------------
+
 %ENCABEZADO
+
 %socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
+
 %publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+
 %caso ListaUsernamesDest = []
+
 %socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,LU,)
 
 
+
+
+
 %CASO -> CUANDO ES DIRIGIDO HACIA EL MISMO
+
 %CUANDO ES EL PRIMER POST
-socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,["Todos"],[0],[0]]],Cm]):-
+
+socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,["Todos"],[],["likes"]]],Cm]):-
+
 Uid > 0,
+
 string(TipoT),
+
 string(T),
+
 fecha(_,_,_,F),
+
 fecha(_,_,_,D),
+
 existeUsuario(Uid,_,_,_,_,Us),
+
 getUserbyID(Us,Uid,[_,U,_,_,_]).
 
+
+
 %[ID,Username,Password,Date,Followers]
+
 %existeUsuario(Uid,U,P,D,UF,Users)
+
 %CUANDO YA EXISTEN POST
 
-socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,["Todos"],[0],[0]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
+
+
+socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,["Todos"],[],["likes"]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
+
   Uid > 0,
+
   NLPid is LPid + 1,
+
   string(TipoT),
+
   string(T),
+
   fecha(_,_,_,F),
+
   fecha(_,_,_,D),
+
   existeUsuario(Uid,_,_,_,_,Us),
+
   getUserbyID(Us,Uid,[_,U,_,_,_]).
 
+
+
 %CASO -> CUANDO ES DIRIGIDO A USUARIOS
+
 %PRIMER POST
+
 %seEncuentraenFollowers(Usuario,ListaVerificar)
+
 %socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
-socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,LU,[0],[0]]],Cm]):-
+
+socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,LU,[],["likes"]]],Cm]):-
+
   Uid > 0,
+
   existeUsuario(Uid,_,_,_,_,Us),
+
   getUserbyID(Us,Uid,[_,U,_,_,Followers]),
+
   seEncuentraenFollowers(LU,Followers).
 
+
+
 %CUANDO YA EXISTEN POST
-socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,LU,[0],[0]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
+
+socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,LU,[],["likes"]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
+
   Uid > 0,
+
   NLPid is LPid + 1,
+
   existeUsuario(Uid,_,_,_,_,Us),
+
   getUserbyID(Us,Uid,[_,U,_,_,Followers]),
+
   seEncuentraenFollowers(LU,Followers).
+
+
+
 
 
 %socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LP]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,U,F,0,TipoT,T,LU,[0],[0]],[LPid,LP]|Ps],Cm]):-
+
 %  Uid > 0,
+
 %  NLPid is LPid + 1,
+
 %  existeUsuario(Uid,U,_,_,_,Us),
+
 %  searchUser(Uid,U,_,_,UF,Us,_),
+
 %  listaFollowers(LU,UF).
+
+
 
 %------------------------------------------------------FOLLOW------------------------------------------------------------------------------
 
