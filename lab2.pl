@@ -416,3 +416,14 @@ userTostring([_,Username,_,_,ListaSeguidores],STRuser):-
         atomics_to_string(ListaSeguidores,'\n', FollowersStrRepr),
 
         atomics_to_string([UserStrRepr, FollowersStrRepr],'\n', STRuser).
+
+%----------------------------------------------------------------------------------------------------------------------------------------
+usersToSTR([], []) :- !.
+
+usersToSTR([UserActual|UserSiguiente],[StruserActual|StruserSgte]):-
+
+    userTostring(UserActual,StrUser),
+
+    string_concat(StrUser,"\n",StruserActual),
+
+    usersToSTR(UserSiguiente,StruserSgte).
