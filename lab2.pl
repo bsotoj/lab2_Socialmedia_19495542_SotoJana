@@ -473,3 +473,13 @@ postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpos
   atomics_to_string(CompartidosSTR,' ', ShareSTR),
 
   atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR],'\n',STRpost).
+%--------------------------------------------------------------------------------------------------------------------------------------
+psTostring([],[]):- !.
+
+psTostring([PostActual|PostSgte],[StrpostActual|StrpostSgte]):-
+
+  postTostring(PostActual,STRpost),
+
+  string_concat(STRpost,'\n',StrpostActual),
+
+  psTostring(PostSgte,StrpostSgte).
