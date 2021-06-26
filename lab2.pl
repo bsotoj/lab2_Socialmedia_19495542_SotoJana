@@ -29,7 +29,38 @@ existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
 seEncuentraenFollowers([],_).
 seEncuentraenFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
     seEncuentraenFollowers(Tail,ListaVerificar).
+%----------------------------------------------------------------------------------------------------------------------------------------------------------
+%seEncuentraenFollowers(UsuariosAverificar,ListaVerificar)
 
+%esto es para el post dirigido a otros usuario
+
+seEncuentraenFollowers([],_).
+
+seEncuentraenFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
+
+    seEncuentraenFollowers(Tail,ListaVerificar).
+
+
+
+
+
+%agregar a atom
+
+existePost(IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes,
+
+           [[IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|_]).
+
+existePost(IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes,[_|Ps]):-
+
+    existePost(IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes,Ps).
+
+%agregar a atom
+
+getPostbyID([[IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|_],IDPost,[IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]):- !.
+
+getPostbyID([_|Ps],IDPost,Post):-
+
+    getPostbyID(Ps,IDPost,Post).
 %---------------------------------------------------------PREDICADOS QUE AUN NO HAN SIDO ORDENADOS PERO QUE FUNCIONAN---------------------------------------
     %orden
     %usuario
@@ -180,66 +211,55 @@ socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
   socialNetworkLogout(Salida,SOut).
 
 %--------------------------------------------------SHARE-----------------------------------------------------------------------------------
-%socialNetworkShare(Sn1, “2021-04-30”, 54, [“u1”, “u5”], Sn2).
-socialNetworkShare()
+socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,[],SOut):-
+
+    Uid > 0,
+
+    getUserbyID(Us,Uid,[_,Username,_,_,_]),
+
+    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+
+    getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
+
+    set_insertarNuevoshare(PC,[Username,"Todos"],Date,NuevoShare),
+
+    set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
+
+    set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
+
+    set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
+
+    socialNetworkLogout(Salida,SOut).
 
 
-["failbok", [24, 5, 2021], -1, [3, [3, "juan", "asd", [1, 1, 1111], []], [2, "camilo", "asd", [1, 1, 1111], ["juan", "pedro"]],
-[1, "pedro", "asd", [1, 1, 1111], []]],
-[3,
-[3, 2, "camilo", [9, 9, 9999], 0, "video", "segundo post a amigos", ["pedro"], [], ["likes"]],
-[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[21, 6, 2021], "camilo", "Todos"], ["likes"]],
-[1, 2, "camilo", [9, 9, 9999], 0, "video", "miPrimerPost", ["Todos"], [[22, 6, 2021], "camilo", "juan", "pedro", [9, 8, 3001], "camilo", "pedro"], ["likes"]]], [0]]
 
+
+
+
+
+socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,ListaUsernamesDest,SOut):-
+
+    Uid > 0,
+
+     existeUsuario(Uid,_,_,_,_,Us),
+
+    getUserbyID(Us,Uid,[_,Username,_,_,Followers]),
+
+    seEncuentraenFollowers(ListaUsernamesDest,Followers),
+
+    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+
+    getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
+
+    append([Username],ListaUsernamesDest,NuevosUsuarios),
+
+    set_insertarNuevoshare(PC,NuevosUsuarios,Date,NuevoShare),
+
+    set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
+
+    set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
+
+    set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
+
+    socialNetworkLogout(Salida,SOut).
 %--------------------------------------------------------------------------------------------------------------------------------------------------------------
-%esto es para el predicado socialnetworktostrings
-%USUARIOS
-userTostring([_,Username,_,_,ListaSeguidores],STRuser):-
-    	atomics_to_string([Username,"Sigue a: "], '\n' , UserStrRepr),
-        atomics_to_string(ListaSeguidores,'\n', FollowersStrRepr),
-        atomics_to_string([UserStrRepr, FollowersStrRepr],'\n', STRuser).
-
-usersToSTR([], []) :- !.
-usersToSTR([UserActual|UserSiguiente],[StruserActual|StruserSgte]):-
-    userTostring(UserActual,StrUser),
-    string_concat(StrUser,"\n",StruserActual),
-    usersToSTR(UserSiguiente,StruserSgte).
-%PUBLICACIONES
-dirigidos_to_string([],[]):- !.
-dirigidos_to_string([PersonaActual|PersonasSgtes],[StrPersonaActual|StrPersonaSgte]):-
-  string_concat(PersonaActual," ",StrPersonaActual),
-  dirigidos_to_string(PersonasSgtes,StrPersonaSgte).
-
-compartidosTostring([],[]):- !.
-compartidosTostring([[Date,[Creador|Dirigidos]]|ShareSgte],[ShrActualSTR|ShrSgteSTR]):-
-  atomics_to_string(Date,'/',Datestr),
-  atomics_to_string(["El dia",Datestr,"por",Creador,"hacia:"],' ',Fechastr),
-  dirigidos_to_string(Dirigidos,DirigidosStr),
-  atomics_to_string(DirigidosStr,',',StrDirigidos),
-  atomics_to_string([Fechastr,StrDirigidos],'\n', STR),
-  string_concat(STR,"\n",ShrActualSTR),
-  compartidosTostring(ShareSgte,ShrSgteSTR).
-
-
-postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpost):-
-  string_concat("ID:",ID,IDstr),
-  atomics_to_string(Date,'/',Datestr),
-  atomics_to_string(["El dia",Datestr,Username,"publico\n",Mensaje],' ',Fechastr),
-  atomics_to_string(Destinatarios,' ', DSTR),
-  atomics_to_string(["Destinatarios:",DSTR],' ', DestinatariosStr),
-  string_concat("Compartidos:"," ",CompartidoStr),
-  compartidosTostring(Compartidos,CompartidosSTR),
-  atomics_to_string(CompartidosSTR,' ', ShareSTR),
-  atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR],'\n',STRpost).
-
-psTostring([],[]):- !.
-psTostring([PostActual|PostSgte],[StrpostActual|StrpostSgte]):-
-  postTostring(PostActual,STRpost),
-  string_concat(STRpost,'\n',StrpostActual),
-  psTostring(PostSgte,StrpostSgte).
-
-
-
-  psTostring(
-  [[3, 2, "camilo", [9, 9, 9999], 0, "video", "segundo post a amigos", ["pedro"], [], ["likes"]],
-  [2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[9, 8, 3001], ["camilo", "pedro"]], [[22, 6, 2021], ["camilo", "juan", "pedro"]]], ["likes"]]],STR).
