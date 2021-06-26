@@ -345,56 +345,63 @@ socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
   set_ActualizarLista([N,D,Uid,[Lid|Us],Ps,Cm],[Lid|NewUsers],4,Salida),
   socialNetworkLogout(Salida,SOut).
 
-%--------------------------------------------------SHARE-----------------------------------------------------------------------------------
-socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,[],SOut):-
+  %--------------------------------------------------SHARE-----------------------------------------------------------------------------------
+  
 
-    Uid > 0,
-
-    getUserbyID(Us,Uid,[_,Username,_,_,_]),
-
-    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
-
-    getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
-
-    set_insertarNuevoshare(PC,[Username,"Todos"],Date,NuevoShare),
-
-    set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
-
-    set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
-
-    set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
-
-    socialNetworkLogout(Salida,SOut).
+  %publicacion = [ID,Uid,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
 
 
 
+  %cuando tiene usuarios
+
+  socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,[],SOut):-
+
+      Uid > 0,
+
+      getUserbyID(Us,Uid,[_,Username,_,_,_]),
+
+      existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+
+      getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
+
+      set_insertarNuevoshare(PC,[Username,"Todos"],Date,NuevoShare),
+
+      set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
+
+      set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
+
+      set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
+
+      socialNetworkLogout(Salida,SOut).
 
 
 
 
-socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,ListaUsernamesDest,SOut):-
 
-    Uid > 0,
 
-     existeUsuario(Uid,_,_,_,_,Us),
 
-    getUserbyID(Us,Uid,[_,Username,_,_,Followers]),
+  socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,ListaUsernamesDest,SOut):-
 
-    seEncuentraenFollowers(ListaUsernamesDest,Followers),
+      Uid > 0,
 
-    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+       existeUsuario(Uid,_,_,_,_,Us),
 
-    getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
+      getUserbyID(Us,Uid,[_,Username,_,_,Followers]),
 
-    append([Username],ListaUsernamesDest,NuevosUsuarios),
+      seEncuentraenFollowers(ListaUsernamesDest,Followers),
 
-    set_insertarNuevoshare(PC,NuevosUsuarios,Date,NuevoShare),
+      existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
 
-    set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
+      getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
 
-    set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
+      append([Username],ListaUsernamesDest,NuevosUsuarios),
 
-    set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
+      set_insertarNuevoshare(PC,NuevosUsuarios,Date,NuevoShare),
 
-    socialNetworkLogout(Salida,SOut).
-%--------------------------------------------------------------------------------------------------------------------------------------------------------------
+      set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
+
+      set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
+
+      set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
+
+      socialNetworkLogout(Salida,SOut).
