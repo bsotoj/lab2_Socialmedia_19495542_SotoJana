@@ -435,3 +435,21 @@ dirigidos_to_string([PersonaActual|PersonasSgtes],[StrPersonaActual|StrPersonaSg
   string_concat(PersonaActual," ",StrPersonaActual),
 
   dirigidos_to_string(PersonasSgtes,StrPersonaSgte).
+%-----------------------------------------------------------------------------------------------------------------------------------------
+compartidosTostring([],[]):- !.
+
+compartidosTostring([[Date,[Creador|Dirigidos]]|ShareSgte],[ShrActualSTR|ShrSgteSTR]):-
+
+  atomics_to_string(Date,'/',Datestr),
+
+  atomics_to_string(["El dia",Datestr,"por",Creador,"hacia:"],' ',Fechastr),
+
+  dirigidos_to_string(Dirigidos,DirigidosStr),
+
+  atomics_to_string(DirigidosStr,',',StrDirigidos),
+
+  atomics_to_string([Fechastr,StrDirigidos],'\n', STR),
+
+  string_concat(STR,"\n",ShrActualSTR),
+
+  compartidosTostring(ShareSgte,ShrSgteSTR).
