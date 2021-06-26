@@ -453,3 +453,23 @@ compartidosTostring([[Date,[Creador|Dirigidos]]|ShareSgte],[ShrActualSTR|ShrSgte
   string_concat(STR,"\n",ShrActualSTR),
 
   compartidosTostring(ShareSgte,ShrSgteSTR).
+%----------------------------------------------------------------------------------------------------------------------------------------
+postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpost):-
+
+  string_concat("ID:",ID,IDstr),
+
+  atomics_to_string(Date,'/',Datestr),
+
+  atomics_to_string(["El dia",Datestr,Username,"publico\n",Mensaje],' ',Fechastr),
+
+  atomics_to_string(Destinatarios,' ', DSTR),
+
+  atomics_to_string(["Destinatarios:",DSTR],' ', DestinatariosStr),
+
+  string_concat("Compartidos:"," ",CompartidoStr),
+
+  compartidosTostring(Compartidos,CompartidosSTR),
+
+  atomics_to_string(CompartidosSTR,' ', ShareSTR),
+
+  atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR],'\n',STRpost).
