@@ -138,7 +138,7 @@ getPostbyID([_|Ps],IDPost,Post):-
             append(Cabeza,Nuevosseguidores,Nuevalista).
 
 
-    
+
         set_UserFollowersupdate([Cabeza|Cola],Nuevosseguidores,Posicion,[Cabeza|Resultado]):-
 
             PosicionSiguiente is Posicion-1,
@@ -146,6 +146,39 @@ getPostbyID([_|Ps],IDPost,Post):-
             set_UserFollowersupdate(Cola,Nuevosseguidores,PosicionSiguiente,Resultado).
 
 %--------------------------------------------------------------------------------------------------------------------------------------------
+%---------------------------ESTO ES DEL POST---------------------------------
+
+    %[ID,Uid,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+
+    %funciona
+
+	%[[22, 6, 2021], "camilo", "juan", "pedro", [9, 8, 3001], "camilo", "pedro"]
+
+
+
+
+
+    %set_insertarNuevoshare([],Personasdirigidas,Date,Nuevalista):-
+
+    %append([Date],Personasdirigidas,Nuevalista).
+
+	set_insertarNuevoshare(Lista,Personasdirigidas,Date,[Nuevalista|Lista]):-
+
+    append([Date],[Personasdirigidas],Nuevalista).
+
+
+
+	set_PostsshareUpdate([[IDPost,_,_,_,_,_,_,_,_,_]|Cola],IDPost,Postmodificado,[Postmodificado|Cola]).
+
+    set_PostsshareUpdate([[ID,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|Cola],IDPost,Postmodificado,[[ID,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|Resultado]):-
+
+    	set_PostsshareUpdate(Cola,IDPost,Postmodificado,Resultado).
+
+
+
+%[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[21, 6, 2021], "camilo", "Todos"], 0], [0]],
+
+%-------------------------------------------------------------------------
 %-------------------------------------------------------REGISTER--------------------------------------------------
 %socialNetwork(N,Date,SocialNetwork)
 socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
