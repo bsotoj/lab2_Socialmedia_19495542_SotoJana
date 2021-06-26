@@ -607,3 +607,83 @@ userPoststoString([[ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,_]|PostSgte
 userPoststoString([_|Ps],Uid,User,StrPs):-
 
     userPoststoString(Ps,Uid,User,StrPs).
+%----------------------------------------------------------------------------------------------------------------------------------
+socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],_],StrOut):-
+
+    atomics_to_string(["#####","Red Social",Name,"#####"],' ', NameSTR),
+
+    atomics_to_string(Date,'/', DateSTR),
+
+    string_concat(DateSTR,"\n", NewDate),
+
+    atomics_to_string([NameSTR,NewDate],'\n', PresentacionSTR),
+
+
+
+    string_concat("***Usuarios Registrados***","\n",UsRegistrados),
+
+    usersToSTR(Users,UsersListStr),
+
+    atomic_list_concat(UsersListStr,'',UsersAtom),
+
+   atom_string(UsersAtom,UsersStr),
+
+    psTostring(Posts,PostsListStr),
+
+    atomic_list_concat(PostsListStr,'',PostsAtom),
+
+    atom_string(PostsAtom,PostsStr),
+
+    atomics_to_string([PresentacionSTR,UsRegistrados,UsersStr,"\n-----------------\n",
+
+                        "***Publicaciones***\n",PostsStr,"\n***Fin Publicaciones***\n",
+
+                        "\n-----------------\n"],'',StrOut).
+
+
+
+%user con sesion activa
+
+ socialnetworkToString([Name,Date,Uid,[_|Users],[_|Posts],_],StrOut):-
+
+    Uid > 0,
+
+    atomics_to_string(["#####","Red Social",Name,"#####"],' ', NameSTR),
+
+    atomics_to_string(Date,'/', DateSTR),
+
+    string_concat(DateSTR,"\n", NewDate),
+
+    atomics_to_string([NameSTR,NewDate],'\n', PresentacionSTR),
+
+
+
+    string_concat("***Usuario con sesion iniciada***","\n",UsRegistrados),
+
+    getUserbyID(Users,Uid,User),
+
+    %usuario y sus seguidores
+
+    userInfotoString(User,InfoSTR),
+
+    userTostring(User,UserStr),
+
+    %publicaciones
+
+    %[id,user,pass,date,followers]
+
+    userPoststoString(Posts,User,PostsListStr),
+
+    atomic_list_concat(PostsListStr,'',PostsAtom),
+
+    atom_string(PostsAtom,PostsStr),
+
+    usPostCompartidos(Posts,User,ShareListStr),
+
+    atomic_list_concat(ShareListStr,'',ShareAtom),
+
+    atomics_to_string([PresentacionSTR,UsRegistrados,InfoSTR,UserStr,"\n-----------------\n","***Publicaciones***\n",
+
+                        PostsStr,"\n***Fin Publicaciones***\n","\n-----------------\n","***Publicaciones compartidas***\n",
+
+                        ShareAtom,"\n***Fin Publicaciones compartidas***\n","\n-----------------\n"],'',StrOut).
