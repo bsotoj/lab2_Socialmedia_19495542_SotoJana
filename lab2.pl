@@ -427,3 +427,11 @@ usersToSTR([UserActual|UserSiguiente],[StruserActual|StruserSgte]):-
     string_concat(StrUser,"\n",StruserActual),
 
     usersToSTR(UserSiguiente,StruserSgte).
+%----------------------------------------------------------------------------------------------------------------------------------------
+dirigidos_to_string([],[]):- !.
+
+dirigidos_to_string([PersonaActual|PersonasSgtes],[StrPersonaActual|StrPersonaSgte]):-
+
+  string_concat(PersonaActual," ",StrPersonaActual),
+
+  dirigidos_to_string(PersonasSgtes,StrPersonaSgte).
