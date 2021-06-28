@@ -1,3 +1,107 @@
+%TDAs
+%Fecha
+%Usuario
+%Publicacion
+%Social Network
+
+%-------------------------------------------------------------------------------------------------------
+%Implementacion TDAs
+%Representacion
+/*
+Fecha: [Day,Month,Year] => Entero X Entero X Entero
+SocialNetwork: [Name,Date,SesionActiva,ListaUsuarios, ListaPublicaciones, Comentarios] => String X Date X Entero X ListaUsuarios X ListaPublicaciones X Comentarios
+Usuario: [ID,Username,Password,Date,ListaSeguidores] => Entero X String X String X Date X ListaSeguidores
+Publicacion: [ID,Date,CantidadvecesCompartidas,Tipocontenido,Contenido,ListaUsernames,PersonasCompartidas,Likes]
+                => Entero X Date X Entero X String X String X ListaUsernames X PersonasCompartidas X Likes
+
+ListaSeguidores: []; Username X Usernames// String X Usernames
+PersonasCompartidas:[Fecha|ListaSeguidores]
+Usuarios: []; Usuario X Usuarios
+Publicaciones: []; Publicacion X Publicaciones
+ListaUsuarios: [LastIdU|Usuarios]
+ListaPublicaciones: [LastPostID|Publicaciones]
+-> no se incluyo el tda comentarios/likes  ya que iba a ser parte de las funcionalidades opcionales
+*/
+%-------------------------------------------------------------------------------------------------------
+/*
+
+Dominios
+SocialNetworkIn: SocialNetwork
+SocialNetworkOut: SocialNetwork
+Day, Month, Year: Entero
+UserID: Entero
+CreadorPost: String
+Username, Password: String
+Share: PersonasCompartidas
+NewShare: PersonasCompartidas
+Date: Fecha
+UserFollowers: ListaSeguidores
+IDPost: Entero
+CantvecesCompartidas: Entero
+Tipocontenido: String
+Contenido: String
+User: Usuario
+Post: Publicacion
+Ps: Publicaciones
+Us: Usuarios
+Personasdirigidas: Lista
+LPid: Entero
+UserDate: Fecha
+NewDate: Fecha
+NewUser: String
+NewPassword: String
+LIDUser: Entero
+LastUser: String
+LastDate: Fecha
+LastTipoContenido: String
+LastContenido: String
+LastFollowers: ListaSeguidores
+LastShare: PersonasCompartidas
+NewLastPostID: Entero
+ListaUsuarios: Lista de strings
+NuevaListaUsuarios: Lista de string
+Personascompartidas: [Fecha|ListaUsuarios]
+Posicion: Entero
+Postmodificado: Publicacion
+UsuarioModificado: Usuario
+NuevoPs: Publicaciones
+StrOut: String
+STRuser: String
+STRusers: Lista de strings
+*/
+
+/*
+Predicados
+fecha(Day,Month,Year)
+existeUsuario(UserID,Username,Password,Date,UserFollowers)
+seEncuentraenFollowers(ListaUsuarios,ListaUsuarios)
+existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,PersonasCompartidas,Likes,Ps)
+getPostbyID(Ps,IDPost,Post)
+getUserbyID(Users,UserID,User)
+getListbyPosition(Lista,Posicion,Lista)
+set_UserFollowersupdate(Lista,ListaUsuarios,Posicion,NuevaListaUsuarios)
+set_insertarNuevoshare(Lista,ListaUsuarios,Date,NuevaLista)
+set_PostsshareUpdate(Ps,IDPost,Postmodificado,NuevoPs)
+set_UsersUpdate(Us,UserID,UsuarioModificado, NuevoUs)
+set_ActualizarLista(Lista,Elemento,Posicion,NuevaLista)
+userTostring(User,STRuser)
+usersToSTR(Us,STRusers)
+dirigidos_to_string(ListaUsuarios,STRusers)
+compartidosTostring(Share,STRusers)
+
+socialNetworkRegister(SocialNetworkIn,NewDate,NewUser,NewPassword,SocialNetworkOut)
+socialNetworkLogin(SocialNetworkIn,Username, Password,SocialNetworkOut)
+socialNetworkPost(SocialNetworkIn,Date,TipoContenido,Contenido,ListaUsuarios, SocialNetworkOut)
+socialNetworkFollow(SocialNetworkIn, Username, SocialNetworkOut)
+socialNetworkShare(SocialNetworkIn,Date,IDPost, ListaUsuarios, SocialNetworkOut)
+socialnetworkToString(SocialNetworkOut, StrOut)
+
+
+
+*/
+
+
+%-----------------------------------------------------------------------------------------------------
 %fecha = [dia,mes,anio]
 %fecha(Day,Month,Year)
 fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year), Day > 0,
@@ -21,8 +125,6 @@ fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year),
 existeUsuario(Uid,U,P,D,UF,[[Uid,U,P,D,UF] |_]).
 existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
 
-%searchUser(Uid,U,P,D,UF,[[Uid,U,P,D,UF]|_], [Uid,U,P,D,UF]).
-%searchUser(Uid,U,P,D,UF,[_|Us],User):- searchUser(Uid,U,P,D,UF,Us,User).
 %--------------------------------------------------------------------------------------------------------------------------
 %seEncuentraenFollowers(UsuariosAverificar,ListaVerificar)
 %esto es para el post dirigido a otros usuario
@@ -30,19 +132,6 @@ seEncuentraenFollowers([],_).
 seEncuentraenFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
     seEncuentraenFollowers(Tail,ListaVerificar).
 %----------------------------------------------------------------------------------------------------------------------------------------------------------
-%seEncuentraenFollowers(UsuariosAverificar,ListaVerificar)
-
-%esto es para el post dirigido a otros usuario
-
-seEncuentraenFollowers([],_).
-
-seEncuentraenFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
-
-    seEncuentraenFollowers(Tail,ListaVerificar).
-
-
-
-
 
 %agregar a atom
 
