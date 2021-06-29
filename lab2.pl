@@ -29,12 +29,18 @@ Dominios
 SocialNetworkIn: SocialNetwork
 SocialNetworkOut: SocialNetwork
 Day, Month, Year: Entero
+N: String
 UserID: Entero
+Uid: Entero
+Elemento: Symbol
+ID: Entero
 CreadorPost: String
 Username, Password: String
 Share: PersonasCompartidas
+Shares: Lista de PersonasCompartidas
 NewShare: PersonasCompartidas
 Date: Fecha
+F: Fecha
 UserFollowers: ListaSeguidores
 IDPost: Entero
 CantvecesCompartidas: Entero
@@ -44,7 +50,6 @@ User: Usuario
 Post: Publicacion
 Ps: Publicaciones
 Us: Usuarios
-Personasdirigidas: Lista
 LPid: Entero
 UserDate: Fecha
 NewDate: Fecha
@@ -59,19 +64,26 @@ LastFollowers: ListaSeguidores
 LastShare: PersonasCompartidas
 NewLastPostID: Entero
 ListaUsuarios: Lista de strings
-NuevaListaUsuarios: Lista de string
+NuevaListaUsuarios: Lista de strings
 Personascompartidas: [Fecha|ListaUsuarios]
+ListaUsernamesDest: Lista de strings
 Posicion: Entero
 Postmodificado: Publicacion
 UsuarioModificado: Usuario
 NuevoPs: Publicaciones
+NuevoUs: Usuarios
 StrOut: String
 STRuser: String
 STRusers: Lista de strings
+STRpost: String
+STRps: Lista de strings
+InfoSTR: String
+STRshares: Lista de strings
 */
 
 /*
 Predicados
+
 fecha(Day,Month,Year)
 existeUsuario(UserID,Username,Password,Date,UserFollowers)
 seEncuentraenFollowers(ListaUsuarios,ListaUsuarios)
@@ -88,25 +100,37 @@ userTostring(User,STRuser)
 usersToSTR(Us,STRusers)
 dirigidos_to_string(ListaUsuarios,STRusers)
 compartidosTostring(Share,STRusers)
+postTostring(Post,STRpost)
+psTostring(Ps,STRps)
+usPosttoString(User,STRpost)
+userInfotoString(User,InfoSTR)
+usPersonasCompartidas(Shares,IDPost,CreadorPost,Username,Contenido,STRshares)
+usShareActivity(Post,Username,STRpost)
+usPostCompartidos(Ps,STRps)
+userPoststoString(Ps,UserID,User,STRps)
 
 socialNetworkRegister(SocialNetworkIn,NewDate,NewUser,NewPassword,SocialNetworkOut)
 socialNetworkLogin(SocialNetworkIn,Username, Password,SocialNetworkOut)
+socialNetworkLogout(SocialNetworkIn,SocialNetworkOut)
 socialNetworkPost(SocialNetworkIn,Date,TipoContenido,Contenido,ListaUsuarios, SocialNetworkOut)
 socialNetworkFollow(SocialNetworkIn, Username, SocialNetworkOut)
 socialNetworkShare(SocialNetworkIn,Date,IDPost, ListaUsuarios, SocialNetworkOut)
 socialnetworkToString(SocialNetworkOut, StrOut)
-
-
-
 */
 
+/*
+Metas
 
-%-----------------------------------------------------------------------------------------------------
+Principales:fecha, socialNetwork, socialNetworkRegister, socialNetworkLogin, socialNetworkPost, socialNetworkFollow, socialNetworkShare, socialnetworkToString
+Secundarias: existeUsuario, seEncuentraenFollowers, existePost,getPostbyID,getUserbyID,getListbyPosition,set_UserFollowersupdate,set_PostsshareUpdate,set_UsersUpdate,set_ActualizarLista
+            userTostring,usersToSTR,dirigidos_to_string,psTostring,usPosttoString,userInfotoString,usPersonasCompartidas,usShareActivity,usPostCompartidos,userPoststoString
+*/
+
+%----------------------------------------Constructores-------------------------------------------------------
 %fecha = [dia,mes,anio]
 %fecha(Day,Month,Year)
 fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year), Day > 0,
     Month > 0, Year > 0, Day =< 31, Month =< 12.
-
 
 %socialnetwork=[nombre,fecha,sesionActiva,usuarios,publicaciones,comentarios]
 %comentarios es para utilizarse en funciones opcionales
@@ -118,437 +142,124 @@ fecha(Day,Month,Year,[Day,Month,Year]):- number(Day),number(Month),number(Year),
 %publicacion = [ID,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
 %publicaciones= [IDultimoP,publicacion1,publicacion2,.....]
 
-%cantVecescompartidas y likes son para las funciones opcionales
-%comentario= [IDPost,ID,[ID,contenido,likes]]
-%---------------------------------------------------------------------------------------------------------------------------
-%existeUsuario(Uid,U,P,D,UF,Users)
-existeUsuario(Uid,U,P,D,UF,[[Uid,U,P,D,UF] |_]).
-existeUsuario(Uid,U,P,D,UF,[_|Us]):- existeUsuario(Uid,U,P,D,UF,Us).
+%cantVecescompartidas,comentarios y likes son para las funciones opcionales
+socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
+%----------------------------------------Pertenencia-------------------------------------------------------
+%existeUsuario(UserID,Username,Password,Date,Listafollowers,Users)
+existeUsuario(UserID,Username,Password,Date,Listafollowers,[[UserID,Username,Password,Date,Listafollowers] |_]).
+existeUsuario(UserID,Username,Password,Date,Listafollowers,[_|Us]):- existeUsuario(UserID,Username,Password,Date,Listafollowers,Us).
 
-%--------------------------------------------------------------------------------------------------------------------------
+
 %seEncuentraenFollowers(UsuariosAverificar,ListaVerificar)
-%esto es para el post dirigido a otros usuario
+%esto es para el post dirigido a otros usuarios
 seEncuentraenFollowers([],_).
 seEncuentraenFollowers([Head|Tail],ListaVerificar):- member(Head,ListaVerificar),
     seEncuentraenFollowers(Tail,ListaVerificar).
-%----------------------------------------------------------------------------------------------------------------------------------------------------------
-
-%agregar a atom
-
-existePost(IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes,
-
-           [[IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|_]).
-
-existePost(IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes,[_|Ps]):-
-
-    existePost(IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes,Ps).
-
-%agregar a atom
-
-getPostbyID([[IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|_],IDPost,[IDPost,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]):- !.
-
-getPostbyID([_|Ps],IDPost,Post):-
-
-    getPostbyID(Ps,IDPost,Post).
-    %---------------------------------------------------------PREDICADOS QUE AUN NO HAN SIDO ORDENADOS PERO QUE FUNCIONAN---------------------------------------
-
-        %orden
-
-        %usuario
-
-        %contactos
-
-        %usuario
-
-        %usuarios
-
-        %tda completo
 
 
+%existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,PersonasCompartidas,Likes,Ps)
+existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes,
 
-        %selectores
+           [[IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes]|_]).
 
-        %usuario = [ID,username,password,date,listaSeguidores(contactos)]
+existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes,[_|Ps]):-
 
-        %funciona
+    existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes,Ps).
 
-        %[[5,mako],[4,bastian],[3,pedro],[2,pablo],[1,juan]]
+%----------------------------------------Selectores-------------------------------------------------------
+%getPostbyID(Ps,IDPost,Post)
+    getPostbyID([[IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes]|_],IDPost,[IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes]):- !.
 
-        %id: 3 -> [3,pedro]
+    getPostbyID([_|Ps],IDPost,Post):-
 
-        getUserbyID([[ID,Username,Password,Date,Followers]|_],ID,[ID,Username,Password,Date,Followers]):- !.
+        getPostbyID(Ps,IDPost,Post).
 
-        getUserbyID([_|Tail],ID,Usuario):-
+%getUserbyID(Users,UserID,User)
+%usuario = [ID,username,password,date,listaSeguidores(contactos)]
+%[[5,mako],[4,bastian],[3,pedro],[2,pablo],[1,juan]]
+%id: 3 -> [3,pedro]
 
-            getUserbyID(Tail,ID,Usuario).
+getUserbyID([[UserID,Username,Password,Date,UserFollowers]|_],UserID,[UserID,Username,Password,Date,UserFollowers]):- !.
+
+getUserbyID([_|Tail],UserID,Usuario):-
+
+    getUserbyID(Tail,UserID,Usuario).
 
 
 
 
+%getListbyPosition(Lista,Posicion,Lista)
+%getListbyPosition([[5,mako,[]],[4,bastian],[3,pedro],[2,pablo],[1,juan]],5,R).
+%R:[1,juan]
+getListbyPosition([Cabeza|_],1,Cabeza).
 
-        %funciona
-
-        %getListbyPosition([[5,mako,[]],[4,bastian],[3,pedro],[2,pablo],[1,juan]],5,R).
-
-        %R:[1,juan]
-
-        getListbyPosition([Cabeza|_],1,Cabeza).
-
-        getListbyPosition([_|Cola],Posicion,Resultado):-
+getListbyPosition([_|Cola],Posicion,Resultado):-
 
             PosicionSiguiente is Posicion-1,
 
             getListbyPosition(Cola,PosicionSiguiente,Resultado).
 
 
+%----------------------------------------Modificadores-------------------------------------------------------
+%set_UserFollowersupdate(Lista,ListaUsuarios,Posicion,NuevaListaUsuarios)
+set_UserFollowersupdate([Cabeza|Cola],ListaUsuarios,1,[Nuevalista|Cola]):-
 
-        %modificadores
-
-        %set por posicion -> listo
-
-        %set por id -> listo
-
+    append(Cabeza,ListaUsuarios,Nuevalista).
 
 
+set_UserFollowersupdate([Cabeza|Cola],ListaUsuarios,Posicion,[Cabeza|Resultado]):-
+
+    PosicionSiguiente is Posicion-1,
+
+    set_UserFollowersupdate(Cola,ListaUsuarios,PosicionSiguiente,Resultado).
+
+%set_insertarNuevoshare(Lista,ListaUsuarios,Date,NuevaLista)
+	set_insertarNuevoshare(Lista,ListaUsuarios,Date,[Nuevalista|Lista]):-
+
+    append([Date],[ListaUsuarios],Nuevalista).
 
 
-        %funciona
+%set_PostsshareUpdate(Ps,IDPost,Postmodificado,NuevoPs)
+set_PostsshareUpdate([[IDPost,_,_,_,_,_,_,_,_,_]|Cola],IDPost,Postmodificado,[Postmodificado|Cola]).
 
-        %[5,mako,["juan"]]
+  set_PostsshareUpdate([[ID,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|Cola],IDPost,Postmodificado,[[ID,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|NuevoPs]):-
 
-        %siempre se elige como posicion la 5
-
-        %["pedro","carlos","david"]
-
-
-
-        set_UserFollowersupdate([Cabeza|Cola],Nuevosseguidores,1,[Nuevalista|Cola]):-
-
-            append(Cabeza,Nuevosseguidores,Nuevalista).
-
-
-
-        set_UserFollowersupdate([Cabeza|Cola],Nuevosseguidores,Posicion,[Cabeza|Resultado]):-
-
-            PosicionSiguiente is Posicion-1,
-
-            set_UserFollowersupdate(Cola,Nuevosseguidores,PosicionSiguiente,Resultado).
-
-%--------------------------------------------------------------------------------------------------------------------------------------------
-%---------------------------ESTO ES DEL POST---------------------------------
-
-    %[ID,Uid,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
-
-    %funciona
-
-	%[[22, 6, 2021], "camilo", "juan", "pedro", [9, 8, 3001], "camilo", "pedro"]
-
-
-
-
-
-    %set_insertarNuevoshare([],Personasdirigidas,Date,Nuevalista):-
-
-    %append([Date],Personasdirigidas,Nuevalista).
-
-	set_insertarNuevoshare(Lista,Personasdirigidas,Date,[Nuevalista|Lista]):-
-
-    append([Date],[Personasdirigidas],Nuevalista).
-
-
-
-	set_PostsshareUpdate([[IDPost,_,_,_,_,_,_,_,_,_]|Cola],IDPost,Postmodificado,[Postmodificado|Cola]).
-
-    set_PostsshareUpdate([[ID,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|Cola],IDPost,Postmodificado,[[ID,Uid,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,Listafollowers,Personascompartidas,Likes]|Resultado]):-
-
-    	set_PostsshareUpdate(Cola,IDPost,Postmodificado,Resultado).
-
-
-
-%[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[21, 6, 2021], "camilo", "Todos"], 0], [0]],
-
-%-------------------------------------------------------------------------
-
-    %funciona
-
-    %modificador los usuarios con el user con los followers agregados
-
-    %modificador([[IDU,_,_]|Cola],IDU,Elemento,[Elemento|Cola]).
-
-    %modificador([[ID,Nombre,Followers]|Cola],IDU,Elemento,[[ID,Nombre,Followers]|Resultado]):-
-
-    %    modificador(Cola,IDU,Elemento,Resultado).
+    set_PostsshareUpdate(Cola,IDPost,Postmodificado,NuevoPs).
 
 
 
     %usuario = [ID,username,password,date,listaSeguidores(contactos)]
+    %set_UsersUpdate(Us,UserID,UsuarioModificado, NuevoUs)
+set_UsersUpdate([[UserID,_,_,_,_]|Cola],UserID,UsuarioModificado,[UsuarioModificado|Cola]).
 
-    set_UsersUpdate([[IDU,_,_,_,_]|Cola],IDU,UsuarioModificado,[UsuarioModificado|Cola]).
+set_UsersUpdate([[ID,Username,Password,Date,Listafollowers]|Cola],UserID,UsuarioModificado,[[ID,Username,Password,Date,Listafollowers]|NuevoUs]):-
 
-    set_UsersUpdate([[ID,Username,Password,Date,Followers]|Cola],IDU,UsuarioModificado,[[ID,Username,Password,Date,Followers]|Resultado]):-
+    set_UsersUpdate(Cola,UserID,UsuarioModificado,NuevoUs).
 
-        set_UsersUpdate(Cola,IDU,UsuarioModificado,Resultado).
 
 
 
     %para modificar el TDA SocialNetwork
-
+    %set_ActualizarLista(Lista,Elemento,Posicion,NuevaLista)
     set_ActualizarLista([_|Colalista],Elemento,1,[Elemento|Colalista]).
 
     set_ActualizarLista([Cabezalista|Colalista],Elemento,Posicion,[Cabezalista|Resultado]):- ContPosicion is Posicion-1,
 
     	set_ActualizarLista(Colalista,Elemento,ContPosicion,Resultado).
-
-%-----------------------------------------------------------------------------------------------------------------
-%-------------------------------------------------------REGISTER--------------------------------------------------
-
-%socialNetwork(N,Date,SocialNetwork)
-
-socialNetwork(N,Date,[N,Date,-1,[0],[0],[0]]):- string(N), fecha(_,_,_,Date).
-
-
-
-%encabezado
-
-%socialNetworkRegister(SocialNetworkIn,NewD,NU,NP,SocialNetworkOut)
-
-
-
-socialNetworkRegister([N,D,-1,[0],Ps,Cm],NewD,NU,NP,[N,D,-1,[1,[1,NU,NP,NewD,[]]],Ps,Cm]).
-
-socialNetworkRegister([N,D,-1, [Lid,[Lid,U,P,UD,UF]|Us], Ps, Cm],NewD,NU,NP,[N,D,-1,[NLid,[NLid,NU,NP,NewD,[]],[Lid,U,P,UD,UF]|Us],Ps,Cm]):-
-
-not(existeUsuario(_,NU,_,_,_,Us)),
-
-NLid is Lid + 1,
-
-not(NU = U).
-
-
-
-
-
-%---------------------------------------------------LOGIN------------------------------------------------------------
-
-%socialNetworkLogin(SocialNetworkIn,U,P,SocialNetworkOut)
-
-socialNetworkLogin([N,D,-1,Us,Ps,Cm],U,P,[N,D,Uid,Us,Ps,Cm]):- existeUsuario(Uid,U,P,_,_,Us).
-
-socialNetworkLogout([N, D, UId, Us, Ps, Cm],[N, D, -1, Us, Ps, Cm]):-UId > -1.
-
-%-----------------------------------------------POST-------------------------------------------------------------
-
-%ENCABEZADO
-
-%socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
-
-%publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
-
-%caso ListaUsernamesDest = []
-
-%socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,LU,)
-
-
-
-
-
-%CASO -> CUANDO ES DIRIGIDO HACIA EL MISMO
-
-%CUANDO ES EL PRIMER POST
-
-socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,["Todos"],[],["likes"]]],Cm]):-
-
-Uid > 0,
-
-string(TipoT),
-
-string(T),
-
-fecha(_,_,_,F),
-
-fecha(_,_,_,D),
-
-existeUsuario(Uid,_,_,_,_,Us),
-
-getUserbyID(Us,Uid,[_,U,_,_,_]).
-
-
-
-%[ID,Username,Password,Date,Followers]
-
-%existeUsuario(Uid,U,P,D,UF,Users)
-
-%CUANDO YA EXISTEN POST
-
-
-
-socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,[],[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,["Todos"],[],["likes"]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
-
-  Uid > 0,
-
-  NLPid is LPid + 1,
-
-  string(TipoT),
-
-  string(T),
-
-  fecha(_,_,_,F),
-
-  fecha(_,_,_,D),
-
-  existeUsuario(Uid,_,_,_,_,Us),
-
-  getUserbyID(Us,Uid,[_,U,_,_,_]).
-
-
-
-%CASO -> CUANDO ES DIRIGIDO A USUARIOS
-
-%PRIMER POST
-
-%seEncuentraenFollowers(Usuario,ListaVerificar)
-
-%socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
-
-socialNetworkPost([N,D,Uid,[Lid|Us],[0],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[1,[1,Uid,U,F,0,TipoT,T,LU,[],["likes"]]],Cm]):-
-
-  Uid > 0,
-
-  existeUsuario(Uid,_,_,_,_,Us),
-
-  getUserbyID(Us,Uid,[_,U,_,_,Followers]),
-
-  seEncuentraenFollowers(LU,Followers).
-
-
-
-%CUANDO YA EXISTEN POST
-
-socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,Uid,U,F,0,TipoT,T,LU,[],["likes"]],[LPid,LIDUser,LUser,LD,CS,LTT,LT,LF,LS,LL]|Ps],Cm]):-
-
-  Uid > 0,
-
-  NLPid is LPid + 1,
-
-  existeUsuario(Uid,_,_,_,_,Us),
-
-  getUserbyID(Us,Uid,[_,U,_,_,Followers]),
-
-  seEncuentraenFollowers(LU,Followers).
-
-
-
-
-
-%socialNetworkPost([N,D,Uid,[Lid|Us],[LPid,[LPid,LP]|Ps],Cm],F,TipoT,T,LU,[N,D,-1,[Lid|Us],[NLPid,[NLPid,U,F,0,TipoT,T,LU,[0],[0]],[LPid,LP]|Ps],Cm]):-
-
-%  Uid > 0,
-
-%  NLPid is LPid + 1,
-
-%  existeUsuario(Uid,U,_,_,_,Us),
-
-%  searchUser(Uid,U,_,_,UF,Us,_),
-
-%  listaFollowers(LU,UF).
-
-
-
-%------------------------------------------------------FOLLOW------------------------------------------------------------------------------
-
-
-%encabezado socialNetworkFollow(Sn1, Username, Sn2).
-
-socialNetworkFollow([N,D,Uid,[Lid|Us],Ps,Cm],Username,SOut):-
-
-  Uid > 0,
-
-  existeUsuario(_,Username,_,_,_,Us),
-
-  getUserbyID(Us,Uid,Usuario),
-
-  set_UserFollowersupdate(Usuario,[Username],5,UsuarioModificado),
-
-  set_UsersUpdate(Us,Uid,UsuarioModificado,NewUsers),
-
-  set_ActualizarLista([N,D,Uid,[Lid|Us],Ps,Cm],[Lid|NewUsers],4,Salida),
-
-  socialNetworkLogout(Salida,SOut).
-
-
-  %--------------------------------------------------SHARE-----------------------------------------------------------------------------------
-
-
-  %publicacion = [ID,Uid,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
-
-
-
-  %cuando tiene usuarios
-
-  socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,[],SOut):-
-
-      Uid > 0,
-
-      getUserbyID(Us,Uid,[_,Username,_,_,_]),
-
-      existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
-
-      getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
-
-      set_insertarNuevoshare(PC,[Username,"Todos"],Date,NuevoShare),
-
-      set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
-
-      set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
-
-      set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
-
-      socialNetworkLogout(Salida,SOut).
-
-
-
-
-
-
-
-  socialNetworkShare([N,D,Uid,Us,[LPid|Ps],Cm],Date,IDPost,ListaUsernamesDest,SOut):-
-
-      Uid > 0,
-
-       existeUsuario(Uid,_,_,_,_,Us),
-
-      getUserbyID(Us,Uid,[_,Username,_,_,Followers]),
-
-      seEncuentraenFollowers(ListaUsernamesDest,Followers),
-
-      existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
-
-      getPostbyID(Ps,IDPost,[IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L]),
-
-      append([Username],ListaUsernamesDest,NuevosUsuarios),
-
-      set_insertarNuevoshare(PC,NuevosUsuarios,Date,NuevoShare),
-
-      set_ActualizarLista([IDPost,Uid,U,Fecha,Cvc,TT,T,LU,PC,L],NuevoShare,9,PostActualizado),
-
-      set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
-
-      set_ActualizarLista([N,D,Uid,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
-
-      socialNetworkLogout(Salida,SOut).
-
-%-----------------------------------------------------------------------------------------------------------------------------------------
-%SOCIAL NETWORK TO STRING
-
-userTostring([_,Username,_,_,ListaSeguidores],STRuser):-
+%----------------------------------------Otras operaciones-------------------------------------------------------
+
+%Predicados para trabajar socialnetworkToString
+%userTostring(User,STRuser)
+userTostring([_,Username,_,_,Listafollowers],STRuser):-
 
     	atomics_to_string([Username,"Sigue a: "], '\n' , UserStrRepr),
 
-        atomics_to_string(ListaSeguidores,'\n', FollowersStrRepr),
+        atomics_to_string(Listafollowers,'\n', FollowersStrRepr),
 
         atomics_to_string([UserStrRepr, FollowersStrRepr],'\n', STRuser).
 
 %----------------------------------------------------------------------------------------------------------------------------------------
+%usersToSTR(Us,STRusers)
 usersToSTR([], []) :- !.
 
 usersToSTR([UserActual|UserSiguiente],[StruserActual|StruserSgte]):-
@@ -559,6 +270,7 @@ usersToSTR([UserActual|UserSiguiente],[StruserActual|StruserSgte]):-
 
     usersToSTR(UserSiguiente,StruserSgte).
 %----------------------------------------------------------------------------------------------------------------------------------------
+%dirigidos_to_string(ListaUsuarios,STRusers)
 dirigidos_to_string([],[]):- !.
 
 dirigidos_to_string([PersonaActual|PersonasSgtes],[StrPersonaActual|StrPersonaSgte]):-
@@ -567,6 +279,7 @@ dirigidos_to_string([PersonaActual|PersonasSgtes],[StrPersonaActual|StrPersonaSg
 
   dirigidos_to_string(PersonasSgtes,StrPersonaSgte).
 %-----------------------------------------------------------------------------------------------------------------------------------------
+%compartidosTostring(Share,STRusers)
 compartidosTostring([],[]):- !.
 
 compartidosTostring([[Date,[Creador|Dirigidos]]|ShareSgte],[ShrActualSTR|ShrSgteSTR]):-
@@ -585,6 +298,7 @@ compartidosTostring([[Date,[Creador|Dirigidos]]|ShareSgte],[ShrActualSTR|ShrSgte
 
   compartidosTostring(ShareSgte,ShrSgteSTR).
 %----------------------------------------------------------------------------------------------------------------------------------------
+%postTostring(Post,STRpost)
 postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpost):-
 
   string_concat("ID:",ID,IDstr),
@@ -605,6 +319,7 @@ postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpos
 
   atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR],'\n',STRpost).
 %--------------------------------------------------------------------------------------------------------------------------------------
+%psTostring(Ps,STRps)
 psTostring([],[]):- !.
 
 psTostring([PostActual|PostSgte],[StrpostActual|StrpostSgte]):-
@@ -616,7 +331,7 @@ psTostring([PostActual|PostSgte],[StrpostActual|StrpostSgte]):-
   psTostring(PostSgte,StrpostSgte).
 %--------------------------------------------------------------------------------------------------------------------------------------
 %ToString para un usuario en especifico
-
+%usPosttoString(User,STRpost)
 usPosttoString([ID,_,Username,Date,_,_,Mensaje,Destinatarios,_,_],STRpost):-
 
     string_concat("ID:",ID,IDstr),
@@ -634,9 +349,7 @@ usPosttoString([ID,_,Username,Date,_,_,Mensaje,Destinatarios,_,_],STRpost):-
 
 
 %[id,user,pass,date,followers]
-
-%userInfotoString(User,InfoSTR),
-
+%userInfotoString(User,InfoSTR)
 userInfotoString([ID,Username,_,Date,_],STRinfo):-
 
     string_concat("ID:",ID,IDstr),
@@ -652,13 +365,10 @@ userInfotoString([ID,Username,_,Date,_],STRinfo):-
 
 
 %[2, 2, "camilo", [9, 9, 9999], 0, "photo", "primer post a amigos", ["juan", "pedro"], [[[9, 8, 3001], ["camilo", "pedro"]], [[22, 6, 2021], ["camilo", "juan", "pedro"]]]
-
-
-
 %ESTO ES PARA EL SHARE CUANDO UID > 0
 
 
-
+%usPersonasCompartidas(Shares,IDPost,CreadorPost,Username,Contenido,STRshares)
 usPersonasCompartidas([],_,_,_,_,[]):- !.
 
 usPersonasCompartidas([[Date,[Username|PersonasCompartidas]]|CompartidosSgte],IDPost,CreadorPost,Username,Mensaje,[StrCompartidoActual|StrCompartidoSgte]):-
@@ -690,9 +400,7 @@ usPersonasCompartidas([_|CompartidosSgte],IDPost,CreadorPost,Username,Mensaje,ST
 
 
 %publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
-
-
-
+%usShareActivity(Post,Username,STRpost)
 usShareActivity([IDPost,_,CreadorPost,_,_,_,Mensaje,_,Compartidos,_],Username,STRpost):-
 
     usPersonasCompartidas(Compartidos,IDPost,CreadorPost,Username,Mensaje,CompartidosSTRlist),
@@ -704,7 +412,7 @@ usShareActivity([IDPost,_,CreadorPost,_,_,_,Mensaje,_,Compartidos,_],Username,ST
 
 
 %[id,user,pass,date,followers]
-
+%usPostCompartidos(Ps,STRps)
 usPostCompartidos([],_,[]):- !.
 
 usPostCompartidos([PostActual|PostSgte],[_,Username,_,_,_],[StrpostActual|StrpostSgte]):-
@@ -720,7 +428,7 @@ usPostCompartidos([PostActual|PostSgte],[_,Username,_,_,_],[StrpostActual|Strpos
 %----------------------------------------------------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------------------------------------------------
-
+%userPoststoString(Ps,UserID,User,STRps)
 userPoststoString([],_,[]):- !.
 
 
@@ -738,6 +446,206 @@ userPoststoString([[ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,_]|PostSgte
 userPoststoString([_|Ps],Uid,User,StrPs):-
 
     userPoststoString(Ps,Uid,User,StrPs).
+
+
+
+
+%-------------------------------------------------Requerimientos obligatorios-------------------------------
+%-----------------------------------------------------------------------------------------------------------
+%-------------------------------------------------------REGISTER--------------------------------------------
+
+
+
+%socialNetworkRegister(SocialNetworkIn,NewD,NU,NP,SocialNetworkOut)
+
+socialNetworkRegister([N,Date,-1,[0],Ps,Cm],NewDate,NewUser,NewPassword,[N,Date,-1,[1,[1,NewUser,NewPassword,NewDate,[]]],Ps,Cm]).
+
+socialNetworkRegister([N,Date,-1, [LIDUser,[LIDUser,Username,Password,UserDate,Listafollowers]|Us], Ps, Cm],NewDate,NewUser,NewPassword,[N,Date,-1,[NewLastUserID,[NewLastUserID,NewUser,NewPassword,NewDate,[]],[LIDUser,Username,Password,UserDate,Listafollowers]|Us],Ps,Cm]):-
+
+not(existeUsuario(_,NewUser,_,_,_,Us)),
+
+NewLastUserID is LIDUser + 1,
+
+not(NewUser = Username).
+
+%---------------------------------------------------LOGIN------------------------------------------------------------
+
+%socialNetworkLogin(SocialNetworkIn,U,P,SocialNetworkOut)
+
+socialNetworkLogin([N,Date,-1,Us,Ps,Cm],Username,Password,[N,Date,UserID,Us,Ps,Cm]):- existeUsuario(UserID,Username,Password,_,_,Us).
+
+socialNetworkLogout([N, Date, UserID, Us, Ps, Cm],[N, Date, -1, Us, Ps, Cm]):-UserID > -1.
+
+
+%-----------------------------------------------POST-------------------------------------------------------------
+
+%ENCABEZADO
+
+%socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
+
+%publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+
+%caso ListaUsernamesDest = []
+
+%socialNetworkPost([N,D,Uid,Us,[0],Cm],F,TipoT,T,LU,)
+
+
+
+
+%CASO -> CUANDO ES DIRIGIDO HACIA EL MISMO
+
+%CUANDO ES EL PRIMER POST
+
+socialNetworkPost([N,Date,UserID,[LIDUser|Us],[0],Cm],F,Tipocontenido,Contenido,[],[N,Date,-1,[LIDUser|Us],[1,[1,UserID,Username,F,0,Tipocontenido,Contenido,["Todos"],[],["likes"]]],Cm]):-
+
+UserID > 0,
+
+string(Tipocontenido),
+
+string(Contenido),
+
+fecha(_,_,_,F),
+
+fecha(_,_,_,Date),
+
+existeUsuario(UserID,_,_,_,_,Us),
+
+getUserbyID(Us,UserID,[_,Username,_,_,_]).
+
+%[ID,Username,Password,Date,Followers]
+
+%existeUsuario(Uid,U,P,D,UF,Users)
+
+%CUANDO YA EXISTEN POST
+
+socialNetworkPost([N,Date,UserID,[Lid|Us],[LPid,[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm],F,TipoContenido,Contenido,[],[N,Date,-1,[Lid|Us],[NewLastPostID,[NewLastPostID,UserID,Username,F,0,TipoContenido,Contenido,["Todos"],[],["likes"]],[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm]):-
+
+  UserID > 0,
+
+  NewLastPostID is LPid + 1,
+
+  string(TipoContenido),
+
+  string(Contenido),
+
+  fecha(_,_,_,F),
+
+  fecha(_,_,_,Date),
+
+  existeUsuario(UserID,_,_,_,_,Us),
+
+  getUserbyID(Us,UserID,[_,Username,_,_,_]).
+
+
+%------------------------------------------------------------------------------------
+%CASO -> CUANDO ES DIRIGIDO A USUARIOS
+
+%PRIMER POST
+
+%seEncuentraenFollowers(Usuario,ListaVerificar)
+
+%socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
+socialNetworkPost([N,Date,UserID,[Lid|Us],[0],Cm],F,TipoContenido,Contenido,ListaUsuarios,[N,Date,-1,[Lid|Us],[1,[1,UserID,Username,F,0,TipoContenido,Contenido,ListaUsuarios,[],["likes"]]],Cm]):-
+
+  UserID > 0,
+
+  existeUsuario(UserID,_,_,_,_,Us),
+
+  getUserbyID(Us,UserID,[_,Username,_,_,Followers]),
+
+  seEncuentraenFollowers(ListaUsuarios,Followers).
+
+
+
+
+%CUANDO YA EXISTEN POST
+socialNetworkPost([N,Date,UserID,[Lid|Us],[LPid,[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm],F,TipoContenido,Contenido,ListaUsuarios,[N,Date,-1,[Lid|Us],[NLPid,[NLPid,UserID,Username,F,0,TipoContenido,Contenido,ListaUsuarios,[],["likes"]],[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm]):-
+
+  UserID > 0,
+
+  NLPid is LPid + 1,
+
+  existeUsuario(UserID,_,_,_,_,Us),
+
+  getUserbyID(Us,UserID,[_,Username,_,_,Followers]),
+
+  seEncuentraenFollowers(ListaUsuarios,Followers).
+%------------------------------------------------------FOLLOW------------------------------------------------------------------------------
+socialNetworkFollow([N,Date,UserID,[Lid|Us],Ps,Cm],Username,SOut):-
+
+  UserID > 0,
+
+  existeUsuario(_,Username,_,_,_,Us),
+
+  getUserbyID(Us,UserID,Usuario),
+
+  set_UserFollowersupdate(Usuario,[Username],5,UsuarioModificado),
+
+  set_UsersUpdate(Us,UserID,UsuarioModificado,NewUsers),
+
+  set_ActualizarLista([N,Date,UserID,[Lid|Us],Ps,Cm],[Lid|NewUsers],4,Salida),
+
+  socialNetworkLogout(Salida,SOut).
+  %--------------------------------------------------SHARE-----------------------------------------------------------------------------------
+
+
+  %publicacion = [ID,Uid,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+  %dirigido a el mismo
+
+
+socialNetworkShare([N,D,UserID,Us,[LPid|Ps],Cm],F,IDPost,[],SOut):-
+
+    UserID > 0,
+
+    getUserbyID(Us,UserID,[_,Username,_,_,_]),
+
+    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+
+    getPostbyID(Ps,IDPost,[IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L]),
+
+    set_insertarNuevoshare(PersonasCompartidas,[Username,"Todos"],F,NuevoShare),
+
+    set_ActualizarLista([IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L],NuevoShare,9,PostActualizado),
+
+    set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
+
+    set_ActualizarLista([N,D,UserID,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
+
+    socialNetworkLogout(Salida,SOut).
+
+
+
+
+
+
+
+%dirigido a usuarios
+socialNetworkShare([N,D,UserID,Us,[LPid|Ps],Cm],F,IDPost,ListaUsernamesDest,SOut):-
+    %date: F
+    UserID > 0,
+
+     existeUsuario(UserID,_,_,_,_,Us),
+
+    getUserbyID(Us,UserID,[_,Username,_,_,Followers]),
+
+    seEncuentraenFollowers(ListaUsernamesDest,Followers),
+
+    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+
+    getPostbyID(Ps,IDPost,[IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L]),
+
+    append([Username],ListaUsernamesDest,NuevosUsuarios),
+
+    set_insertarNuevoshare(PersonasCompartidas,NuevosUsuarios,F,NuevoShare),
+
+    set_ActualizarLista([IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L],NuevoShare,9,PostActualizado),
+
+    set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
+
+    set_ActualizarLista([N,D,UserID,Us,[LPid|Ps],Cm],[LPid|Newposts],5,Salida),
+
+    socialNetworkLogout(Salida,SOut).
+
 %----------------------------------------------------------------------------------------------------------------------------------
 socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],_],StrOut):-
 
