@@ -269,6 +269,12 @@ set_UsersUpdate([[ID,Username,Password,Date,Listafollowers]|Cola],UserID,Usuario
     set_ActualizarLista([Cabezalista|Colalista],Elemento,Posicion,[Cabezalista|Resultado]):- ContPosicion is Posicion-1,
 
     	set_ActualizarLista(Colalista,Elemento,ContPosicion,Resultado).
+
+      %Publicacion: [ID,Date,CantidadvecesCompartidas,Tipocontenido,Contenido,ListaUsernames,PersonasCompartidas,Likes] -> 8
+      %Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes] => 5
+
+
+
 %----------------------------------------Otras operaciones-------------------------------------------------------
 
 %Predicados para trabajar socialnetworkToString
@@ -473,6 +479,79 @@ userPoststoString([_|Ps],Uid,User,StrPs):-
 
 
 
+%---------------------------------------------------------------------------------------------
+%COSAS DEL LIKE QUE DEBEN SER ORDENADAS
+%like: [Fecha,UserID,"Me gusta"]
+insertarNuevoLike(Lista,Date,UserID,[Nuevalista|Lista]):-
+  append([Date],[UserID,"Me gusta"],Nuevalista).
+
+
+getCommentbyID([[CommentID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]|_],CommentID,[CommentID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]):- !.
+getCommentbyID([_|Tail],CommentID,Comentario):-
+  getCommentbyID(Tail,CommentID,Comentario).
+%cosas que se van a usar para el like a una publicacion
+%getListbyPosition([_|Cola],Posicion,Resultado)
+%set_ActualizarLista([_|Colalista],Elemento,1,[Elemento|Colalista]).
+%set_PostsshareUpdate(Cola,IDPost,Postmodificado,NuevoPs).
+
+%set_UsersUpdate([[UserID,_,_,_,_]|Cola],UserID,UsuarioModificado,[UsuarioModificado|Cola]).
+
+%set_UsersUpdate([[ID,Username,Password,Date,Listafollowers]|Cola],UserID,UsuarioModificado,[[ID,Username,Password,Date,Listafollowers]|NuevoUs]):-
+
+    %set_UsersUpdate(Cola,UserID,UsuarioModificado,NuevoUs).
+
+%perteneceComentarioAPublicacion([[CommentID,PostID,_,_,_]|_],CommentID,PostID).
+
+
+set_CommentsUpdate([[CommentID,_,_,_,_]|Cola],CommentID,ComentarioModificado,[ComentarioModificado|Cola]).
+set_CommentsUpdate([[CmID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]|Cola],CommentID,ComentarioModificado,[[CmID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]|NuevoCm]):-
+  set_CommentsUpdate(Cola,CommentID,ComentarioModificado,NuevoCm).
+
+%socialNetworkLogout([N, Date, UserID, Us, Ps, Cm],[N, Date, -1, Us, Ps, Cm]):-UserID > -1.
+%socialNetworkLike (Sn1, Fecha, PostId, CommentId, Sn2)
+/*
+socialNetworkLike( Sn1, “2021-05-04”, 4, 0, Sn2). ; Este es un like al post con id 4.
+
+*****socialNetworkLike( Sn1, “2021-05-04”, 4, 58, Sn2). ; Este es un like al comentario con id 58 que está en el post con id 4
+*/
+
+%like a un comentario proveniente de una publicacion
+%Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes]
+%publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+
+%like: [Fecha,UserID,"Me gusta"]
+%insertarNuevoLike(Lista,Date,UserID,[Nuevalista|Lista]):-
+%append([Date],[UserID,"Me gusta"],NuevaLista).
+%set_ActualizarLista([_|Colalista],Elemento,1,[Elemento|Colalista]).
+
+%getPostbyID(Ps,IDPost,Post)
+socialNetworkLike([N,D,UserID,Us,Ps,[LastCommentID|Cm]],Fecha,IDPost,CommentID,SocialNetworkOut):-
+  UserID > 0,
+  perteneceComentarioAPublicacion(Cm,CommentID,IDPost),
+  getCommentbyID(Cm,CommentID,Comentario),
+  getListbyPosition(Comentario,5,LikesDelComentario),
+  insertarNuevoLike(LikesDelComentario,Fecha,UserID,NuevosLikes),
+  set_ActualizarLista(Comentario,NuevosLikes,5,ComentarioActualizado),
+  set_CommentsUpdate(Cm,CommentID,ComentarioActualizado,CmActualizado),
+  set_ActualizarLista([N,D,UserID,Us,Ps,[LastCommentID|Cm]], [LastCommentID|CmActualizado],6,Salida),
+  socialNetworkLogout(Salida,SocialNetworkOut).
+
+%%set_PostsshareUpdate(Cola,IDPost,Postmodificado,NuevoPs).
+%like a una publicacion
+socialNetworkLike([N,D,UserID,Us,[LPid|Ps],Cm],Fecha,IDPost,0,SocialNetworkOut):-
+  UserID > 0,
+  getPostbyID(Ps,IDPost,Post),
+  getListbyPosition(Post,10,LikesDelaPublicacion),
+  insertarNuevoLike(LikesDelaPublicacion,Fecha,UserID,NuevosLikes),
+  set_ActualizarLista(Post,NuevosLikes,10,PostActualizado),
+  set_PostsshareUpdate(Ps,IDPost,PostActualizado,NuevoPs),
+  set_ActualizarLista([N,D,UserID,Us,[LPid|Ps],Cm],[LPid|NuevoPs],5,Salida),
+  socialNetworkLogout(Salida,SocialNetworkOut).
+
+
+
+
+
 %-------------------------------------------------Requerimientos obligatorios-------------------------------
 %-----------------------------------------------------------------------------------------------------------
 %-------------------------------------------------------REGISTER--------------------------------------------
@@ -519,7 +598,7 @@ socialNetworkLogout([N, Date, UserID, Us, Ps, Cm],[N, Date, -1, Us, Ps, Cm]):-Us
 
 %CUANDO ES EL PRIMER POST
 
-socialNetworkPost([N,Date,UserID,[LIDUser|Us],[0],Cm],F,Tipocontenido,Contenido,[],[N,Date,-1,[LIDUser|Us],[1,[1,UserID,Username,F,0,Tipocontenido,Contenido,["Todos"],[],["likes"]]],Cm]):-
+socialNetworkPost([N,Date,UserID,[LIDUser|Us],[0],Cm],F,Tipocontenido,Contenido,[],[N,Date,-1,[LIDUser|Us],[1,[1,UserID,Username,F,0,Tipocontenido,Contenido,["Todos"],[],[]]],Cm]):-
 
 UserID > 0,
 
@@ -541,7 +620,7 @@ getUserbyID(Us,UserID,[_,Username,_,_,_]).
 
 %CUANDO YA EXISTEN POST
 
-socialNetworkPost([N,Date,UserID,[Lid|Us],[LPid,[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm],F,TipoContenido,Contenido,[],[N,Date,-1,[Lid|Us],[NewLastPostID,[NewLastPostID,UserID,Username,F,0,TipoContenido,Contenido,["Todos"],[],["likes"]],[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm]):-
+socialNetworkPost([N,Date,UserID,[Lid|Us],[LPid,[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm],F,TipoContenido,Contenido,[],[N,Date,-1,[Lid|Us],[NewLastPostID,[NewLastPostID,UserID,Username,F,0,TipoContenido,Contenido,["Todos"],[],[]],[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm]):-
 
   UserID > 0,
 
@@ -568,7 +647,7 @@ socialNetworkPost([N,Date,UserID,[Lid|Us],[LPid,[LPid,LIDUser,LastUser,LastDate,
 %seEncuentraenFollowers(Usuario,ListaVerificar)
 
 %socialNetworkPost(Sn1, Fecha, Texto, ListaUsernamesDest,Sn2).
-socialNetworkPost([N,Date,UserID,[Lid|Us],[0],Cm],F,TipoContenido,Contenido,ListaUsuarios,[N,Date,-1,[Lid|Us],[1,[1,UserID,Username,F,0,TipoContenido,Contenido,ListaUsuarios,[],["likes"]]],Cm]):-
+socialNetworkPost([N,Date,UserID,[Lid|Us],[0],Cm],F,TipoContenido,Contenido,ListaUsuarios,[N,Date,-1,[Lid|Us],[1,[1,UserID,Username,F,0,TipoContenido,Contenido,ListaUsuarios,[],[]]],Cm]):-
 
   UserID > 0,
 
@@ -582,7 +661,7 @@ socialNetworkPost([N,Date,UserID,[Lid|Us],[0],Cm],F,TipoContenido,Contenido,List
 
 
 %CUANDO YA EXISTEN POST
-socialNetworkPost([N,Date,UserID,[Lid|Us],[LPid,[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm],F,TipoContenido,Contenido,ListaUsuarios,[N,Date,-1,[Lid|Us],[NLPid,[NLPid,UserID,Username,F,0,TipoContenido,Contenido,ListaUsuarios,[],["likes"]],[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm]):-
+socialNetworkPost([N,Date,UserID,[Lid|Us],[LPid,[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm],F,TipoContenido,Contenido,ListaUsuarios,[N,Date,-1,[Lid|Us],[NLPid,[NLPid,UserID,Username,F,0,TipoContenido,Contenido,ListaUsuarios,[],[]],[LPid,LIDUser,LastUser,LastDate,CantidadvecesCompartidas,LastTipoContenido,LastContenido,LastFollowers,LastShare,LL]|Ps],Cm]):-
 
   UserID > 0,
 
