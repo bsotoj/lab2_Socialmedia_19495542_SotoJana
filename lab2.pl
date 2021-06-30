@@ -2,6 +2,7 @@
 %Fecha
 %Usuario
 %Publicacion
+%Comentario
 %Social Network
 
 %-------------------------------------------------------------------------------------------------------
@@ -9,18 +10,24 @@
 %Representacion
 /*
 Fecha: [Day,Month,Year] => Entero X Entero X Entero
-SocialNetwork: [Name,Date,SesionActiva,ListaUsuarios, ListaPublicaciones, Comentarios] => String X Date X Entero X ListaUsuarios X ListaPublicaciones X Comentarios
+SocialNetwork: [Name,Date,SesionActiva,ListaUsuarios, ListaPublicaciones, ListaComentarios] => String X Date X Entero X ListaUsuarios X ListaPublicaciones X Comentarios
 Usuario: [ID,Username,Password,Date,ListaSeguidores] => Entero X String X String X Date X ListaSeguidores
 Publicacion: [ID,Date,CantidadvecesCompartidas,Tipocontenido,Contenido,ListaUsernames,PersonasCompartidas,Likes]
                 => Entero X Date X Entero X String X String X ListaUsernames X PersonasCompartidas X Likes
+Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes] => Entero X Entero X Entero X [Fecha X String] X Likes
+
 
 ListaSeguidores: []; Username X Usernames// String X Usernames
 PersonasCompartidas:[Fecha|ListaSeguidores]
 Usuarios: []; Usuario X Usuarios
 Publicaciones: []; Publicacion X Publicaciones
+Comentarios: []; Comentario X Comentarios
+
 ListaUsuarios: [LastIdU|Usuarios]
 ListaPublicaciones: [LastPostID|Publicaciones]
--> no se incluyo el tda comentarios/likes  ya que iba a ser parte de las funcionalidades opcionales
+ListaComentarios: [LastCommentID|Comentarios]
+
+-> no se incluyo el TDA Likes, que estaba pensado en usarse para los requerimientos extras
 */
 %-------------------------------------------------------------------------------------------------------
 /*
@@ -79,6 +86,13 @@ STRpost: String
 STRps: Lista de strings
 InfoSTR: String
 STRshares: Lista de strings
+LastCommentID: Entero
+LastPostID: Entero
+LastIDcomentarioQueseComenta: Entero
+LastContenido: String
+NewLastCommentID: Entero
+
+
 */
 
 /*
@@ -108,6 +122,7 @@ usPersonasCompartidas(Shares,IDPost,CreadorPost,Username,Contenido,STRshares)
 usShareActivity(Post,Username,STRpost)
 usPostCompartidos(Ps,STRps)
 userPoststoString(Ps,UserID,User,STRps)
+perteneceComentarioApublicacion(Cm,CommentID,IDPost)
 
 socialNetworkRegister(SocialNetworkIn,NewDate,NewUser,NewPassword,SocialNetworkOut)
 socialNetworkLogin(SocialNetworkIn,Username, Password,SocialNetworkOut)
@@ -116,14 +131,16 @@ socialNetworkPost(SocialNetworkIn,Date,TipoContenido,Contenido,ListaUsuarios, So
 socialNetworkFollow(SocialNetworkIn, Username, SocialNetworkOut)
 socialNetworkShare(SocialNetworkIn,Date,IDPost, ListaUsuarios, SocialNetworkOut)
 socialnetworkToString(SocialNetworkOut, StrOut)
+comment(SocialNetworkIn,Date,IDPost,CommentID,Contenido,SocialNetworkOut)
 */
 
 /*
 Metas
 
-Principales:fecha, socialNetwork, socialNetworkRegister, socialNetworkLogin, socialNetworkPost, socialNetworkFollow, socialNetworkShare, socialnetworkToString
+Principales:fecha, socialNetwork, socialNetworkRegister, socialNetworkLogin, socialNetworkPost, socialNetworkFollow, socialNetworkShare, socialnetworkToString, comment
 Secundarias: existeUsuario, seEncuentraenFollowers, existePost,getPostbyID,getUserbyID,getListbyPosition,set_UserFollowersupdate,set_PostsshareUpdate,set_UsersUpdate,set_ActualizarLista
-            userTostring,usersToSTR,dirigidos_to_string,psTostring,usPosttoString,userInfotoString,usPersonasCompartidas,usShareActivity,usPostCompartidos,userPoststoString
+            userTostring,usersToSTR,dirigidos_to_string,psTostring,usPosttoString,userInfotoString,usPersonasCompartidas,usShareActivity,usPostCompartidos,userPoststoString,
+            perteneceComentarioAPublicacion
 */
 
 %----------------------------------------Constructores-------------------------------------------------------
@@ -165,6 +182,12 @@ existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Conten
 existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes,[_|Ps]):-
 
     existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes,Ps).
+
+%comentario dirigido hacia otro comentario
+%perteneceComentarioApublicacion([CommentID,PostID,_,_,_],CommentID,PostID)
+perteneceComentarioAPublicacion([[CommentID,PostID,_,_,_]|_],CommentID,PostID).
+perteneceComentarioAPublicacion([_|Cm],CommentID,PostID):-
+      perteneceComentarioAPublicacion(Cm,CommentID,PostID).
 
 %----------------------------------------Selectores-------------------------------------------------------
 %getPostbyID(Ps,IDPost,Post)
@@ -646,7 +669,7 @@ socialNetworkShare([N,D,UserID,Us,[LPid|Ps],Cm],F,IDPost,ListaUsernamesDest,SOut
 
     socialNetworkLogout(Salida,SOut).
 
-%----------------------------------------------------------------------------------------------------------------------------------
+%--------------------------------------------------ToString-----------------------------------------------------------------------------------
 socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],_],StrOut):-
 
     atomics_to_string(["#####","Red Social",Name,"#####"],' ', NameSTR),
@@ -726,3 +749,32 @@ socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],_],StrOut):-
                         PostsStr,"\n***Fin Publicaciones***\n","\n-----------------\n","***Publicaciones compartidas***\n",
 
                         ShareAtom,"\n***Fin Publicaciones compartidas***\n","\n-----------------\n"],'',StrOut).
+%--------------------------------------------------Comment-----------------------------------------------------------------------------------
+%existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,PersonasCompartidas,Likes,Ps)
+%primer comentario -> dirigido a una publicacion
+%comment(Sn1,Fecha,PostID,CommentID,TextoContenido,Sn2)
+%comentario: (CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Like)
+comment([N,D,UserID,Us,Ps,[0]],Fecha,IDPost,0,Contenido,[N,D,-1,Us,Ps,[1,[1,IDPost,0,[Fecha,Contenido],[]]]]):-
+    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+    UserID > 0,
+    fecha(_,_,_,Fecha),
+    string(Contenido).
+
+%dirigido a una publicacion
+comment([N,D,UserID,Us,Ps,[LastCommentID,[LastCommentID,LastPostID,LastIDcomentarioQueseComenta,LastContenido,LastLike]|Cm]], Fecha, IDPost, 0, Contenido, [N,D,-1,Us,Ps,[NewLastCommentID,[NewLastCommentID,IDPost,0,[Fecha,Contenido],[]],[LastCommentID,LastPostID,LastIDcomentarioQueseComenta,LastContenido,LastLike]|Cm]]):-
+    NewLastCommentID is LastCommentID + 1,
+    existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+    UserID > 0,
+    fecha(_,_,_,Fecha),
+    string(Contenido).
+
+%comentario dirigido a otro comentario
+
+comment([N,D,UserID,Us,Ps,[LastCommentID|Cm]],Fecha,IDPost,CommentID,Contenido,[N,D,-1,Us,Ps,[NewLastCommentID,[NewLastCommentID,IDPost,CommentID,[Fecha,Contenido],[]]|Cm]]):-
+    UserID > 0,
+    NewLastCommentID is LastCommentID + 1,
+existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
+    UserID > 0,
+    fecha(_,_,_,Fecha),
+    string(Contenido),
+    perteneceComentarioAPublicacion(Cm,CommentID,IDPost).
