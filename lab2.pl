@@ -326,11 +326,23 @@ compartidosTostring([[Date,[Creador|Dirigidos]]|ShareSgte],[ShrActualSTR|ShrSgte
   string_concat(STR,"\n",ShrActualSTR),
 
   compartidosTostring(ShareSgte,ShrSgteSTR).
+
+%----------------------------------------------------------------------------------------------------------------------------------------
+%likesToString(LikeActual,IDPost,STR)
+likePosttoString([],_,[]):- !.
+likePosttoString([[Date,UserID,_]|LikeSgte],IDPost,[STRlikeActual|STRlikeSgte]):-
+  atomics_to_string(Date,'/',DateSTR),
+  atomics_to_string(["El dia",DateSTR,", el usuario con ID:",UserID,"reacciono a la publicacion con ID:",IDPost],' ', STRlike),
+  string_concat(STRlike,"\n",STRlikeActual),
+  likePosttoString(LikeSgte,IDPost,STRlikeSgte).
 %----------------------------------------------------------------------------------------------------------------------------------------
 %postTostring(Post,STRpost)
-postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpost):-
+%psTostring
+%like: [Fecha,UserID,"Me gusta"]
+%likesToString
+postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,Likes],STRpost):-
 
-  string_concat("ID:",ID,IDstr),
+  string_concat("Publicacion con ID:",ID,IDstr),
 
   atomics_to_string(Date,'/',Datestr),
 
@@ -346,7 +358,13 @@ postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,_],STRpos
 
   atomics_to_string(CompartidosSTR,' ', ShareSTR),
 
-  atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR],'\n',STRpost).
+  string_concat("La publicacion ha recibido me gusta:", " ", LikesSTR ),
+
+  likePosttoString(Likes,ID,LikesToString),
+
+  atomics_to_string(LikesToString, ' ', LKsSTR),
+
+  atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR,LikesSTR,LKsSTR],'\n',STRpost).
 %--------------------------------------------------------------------------------------------------------------------------------------
 %psTostring(Ps,STRps)
 psTostring([],[]):- !.
@@ -361,7 +379,9 @@ psTostring([PostActual|PostSgte],[StrpostActual|StrpostSgte]):-
 %--------------------------------------------------------------------------------------------------------------------------------------
 %ToString para un usuario en especifico
 %usPosttoString(User,STRpost)
-usPosttoString([ID,_,Username,Date,_,_,Mensaje,Destinatarios,_,_],STRpost):-
+%  usPosttoString
+
+usPosttoString([ID,_,Username,Date,_,_,Mensaje,Destinatarios,_,Likes],STRpost):-
 
     string_concat("ID:",ID,IDstr),
 
@@ -373,7 +393,13 @@ usPosttoString([ID,_,Username,Date,_,_,Mensaje,Destinatarios,_,_],STRpost):-
 
     atomics_to_string(["Destinatarios:",DSTR],' ', DestinatariosStr),
 
-    atomic_list_concat([IDstr,Fechastr,DestinatariosStr],'\n',STRpost).
+    string_concat("Personas que le dieron like a la publicacion:","\n", LikesSTR),
+
+    likePosttoString(Likes,ID,STRlikes),
+
+    atomics_to_string(STRlikes,' ', LKsSTR),
+
+    atomic_list_concat([IDstr,Fechastr,DestinatariosStr,LikesSTR,LKsSTR],'\n',STRpost).
 
 
 
@@ -457,14 +483,15 @@ usPostCompartidos([PostActual|PostSgte],[_,Username,_,_,_],[StrpostActual|Strpos
 %----------------------------------------------------------------------------------------------------------------------------------
 
 %----------------------------------------------------------------------------------------------------------------------------------
+%userPoststoString
 %userPoststoString(Ps,UserID,User,STRps)
 userPoststoString([],_,[]):- !.
 
 
 
-userPoststoString([[ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,_]|PostSgte],[Uid,Username,_,_,_],[StrpostActual|StrpostSgte]):-
+userPoststoString([[ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,Likes]|PostSgte],[Uid,Username,_,_,_],[StrpostActual|StrpostSgte]):-
 
-    usPosttoString([ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,_],STRpost),
+    usPosttoString([ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,Likes],STRpost),
 
     string_concat(STRpost,'\n',StrpostActual),
 
