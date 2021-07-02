@@ -14,7 +14,7 @@ SocialNetwork: [Name,Date,SesionActiva,ListaUsuarios, ListaPublicaciones, ListaC
 Usuario: [ID,Username,Password,Date,ListaSeguidores] => Entero X String X String X Date X ListaSeguidores
 Publicacion: [ID,Date,CantidadvecesCompartidas,Tipocontenido,Contenido,ListaUsernames,PersonasCompartidas,Likes]
                 => Entero X Date X Entero X String X String X ListaUsernames X PersonasCompartidas X Likes
-Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes] => Entero X Entero X Entero X [Fecha X String] X Likes
+Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes,UserID] => Entero X Entero X Entero X [Fecha X String] X Likes
 
 
 ListaSeguidores: []; Username X Usernames// String X Usernames
@@ -91,7 +91,14 @@ LastPostID: Entero
 LastIDcomentarioQueseComenta: Entero
 LastContenido: String
 NewLastCommentID: Entero
-
+STRlikes: Lista de Strings
+CommentID: Entero
+Cm: Comentarios
+IDComment: Entero
+STRcomment: String
+STRcms: Lista de Strings
+ComentarioModificado: Comentario
+NuevoCm: Comentarios
 
 */
 
@@ -123,6 +130,15 @@ usShareActivity(Post,Username,STRpost)
 usPostCompartidos(Ps,STRps)
 userPoststoString(Ps,UserID,User,STRps)
 perteneceComentarioApublicacion(Cm,CommentID,IDPost)
+getCommentbyID(Cm,CommentID,Comentario)
+likePosttoString(Likes,IDPost,STRlikes)
+likeCommenttoString(Likes,IDComment,STRlikes)
+commentTostring(Comentario,STRcomment)
+cmTostring(Cm,STRcms)
+userCommentstoString(Cm,STRcms)
+insertarNuevoLike(Lista,Date,UserID,NuevaLista)
+set_CommentsUpdate(Cm,CommentID,ComentarioModificado,NuevoCm).
+
 
 socialNetworkRegister(SocialNetworkIn,NewDate,NewUser,NewPassword,SocialNetworkOut)
 socialNetworkLogin(SocialNetworkIn,Username, Password,SocialNetworkOut)
@@ -132,15 +148,18 @@ socialNetworkFollow(SocialNetworkIn, Username, SocialNetworkOut)
 socialNetworkShare(SocialNetworkIn,Date,IDPost, ListaUsuarios, SocialNetworkOut)
 socialnetworkToString(SocialNetworkOut, StrOut)
 comment(SocialNetworkIn,Date,IDPost,CommentID,Contenido,SocialNetworkOut)
+socialNetworkLike(SocialNetworkIn,Date,IDPost,CommentID,SocialNetworkOut)
+
+
 */
 
 /*
 Metas
 
-Principales:fecha, socialNetwork, socialNetworkRegister, socialNetworkLogin, socialNetworkPost, socialNetworkFollow, socialNetworkShare, socialnetworkToString, comment
+Principales:fecha, socialNetwork, socialNetworkRegister, socialNetworkLogin, socialNetworkPost, socialNetworkFollow, socialNetworkShare, socialnetworkToString, comment,socialNetworkLike
 Secundarias: existeUsuario, seEncuentraenFollowers, existePost,getPostbyID,getUserbyID,getListbyPosition,set_UserFollowersupdate,set_PostsshareUpdate,set_UsersUpdate,set_ActualizarLista
             userTostring,usersToSTR,dirigidos_to_string,psTostring,usPosttoString,userInfotoString,usPersonasCompartidas,usShareActivity,usPostCompartidos,userPoststoString,
-            perteneceComentarioAPublicacion
+            perteneceComentarioAPublicacion,getCommentbyID,likePosttoString,commentTostring,cmTostring, userCommentstoString,insertarNuevoLike,set_CommentsUpdate
 */
 
 %----------------------------------------Constructores-------------------------------------------------------
@@ -184,8 +203,8 @@ existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Conten
     existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,Personascompartidas,Likes,Ps).
 
 %comentario dirigido hacia otro comentario
-%perteneceComentarioApublicacion([CommentID,PostID,_,_,_],CommentID,PostID)
-perteneceComentarioAPublicacion([[CommentID,PostID,_,_,_]|_],CommentID,PostID).
+%perteneceComentarioApublicacion([CommentID,PostID,_,_,_,_],CommentID,PostID)
+perteneceComentarioAPublicacion([[CommentID,PostID,_,_,_,_]|_],CommentID,PostID).
 perteneceComentarioAPublicacion([_|Cm],CommentID,PostID):-
       perteneceComentarioAPublicacion(Cm,CommentID,PostID).
 
@@ -223,6 +242,9 @@ getListbyPosition([_|Cola],Posicion,Resultado):-
             getListbyPosition(Cola,PosicionSiguiente,Resultado).
 
 
+getCommentbyID([[CommentID,IDPost,IDcomentarioQueseComenta,Contenido,Likes,UserID]|_],CommentID,[CommentID,IDPost,IDcomentarioQueseComenta,Contenido,Likes,UserID]):- !.
+  getCommentbyID([_|Tail],CommentID,Comentario):-
+  getCommentbyID(Tail,CommentID,Comentario).
 %----------------------------------------Modificadores-------------------------------------------------------
 %set_UserFollowersupdate(Lista,ListaUsuarios,Posicion,NuevaListaUsuarios)
 set_UserFollowersupdate([Cabeza|Cola],ListaUsuarios,1,[Nuevalista|Cola]):-
@@ -274,6 +296,9 @@ set_UsersUpdate([[ID,Username,Password,Date,Listafollowers]|Cola],UserID,Usuario
       %Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes] => 5
 
 
+  set_CommentsUpdate([[CommentID,_,_,_,_,_]|Cola],CommentID,ComentarioModificado,[ComentarioModificado|Cola]).
+  set_CommentsUpdate([[CmID,IDPost,IDcomentarioQueseComenta,Contenido,Likes,UserID]|Cola],CommentID,ComentarioModificado,[[CmID,IDPost,IDcomentarioQueseComenta,Contenido,Likes,UserID]|NuevoCm]):-
+      set_CommentsUpdate(Cola,CommentID,ComentarioModificado,NuevoCm).
 
 %----------------------------------------Otras operaciones-------------------------------------------------------
 
@@ -335,6 +360,14 @@ likePosttoString([[Date,UserID,_]|LikeSgte],IDPost,[STRlikeActual|STRlikeSgte]):
   atomics_to_string(["El dia",DateSTR,", el usuario con ID:",UserID,"reacciono a la publicacion con ID:",IDPost],' ', STRlike),
   string_concat(STRlike,"\n",STRlikeActual),
   likePosttoString(LikeSgte,IDPost,STRlikeSgte).
+
+  likeCommenttoString([],_,[]):- !.
+  likeCommenttoString([[Date,UserID,_]|LikeSgte],IDComment,[STRlikeActual|STRlikeSgte]):-
+    atomics_to_string(Date,'/',DateSTR),
+    atomics_to_string(["El dia",DateSTR,", el usuario con ID:",UserID,"reacciono al comentario con ID:",IDComment],' ', STRlike),
+    string_concat(STRlike,"\n",STRlikeActual),
+    likeCommenttoString(LikeSgte,IDComment,STRlikeSgte).
+
 %----------------------------------------------------------------------------------------------------------------------------------------
 %postTostring(Post,STRpost)
 %psTostring
@@ -365,6 +398,37 @@ postTostring([ID,_,Username,Date,_,_,Mensaje,Destinatarios,Compartidos,Likes],ST
   atomics_to_string(LikesToString, ' ', LKsSTR),
 
   atomic_list_concat([IDstr, Fechastr,DestinatariosStr,CompartidoStr,ShareSTR,LikesSTR,LKsSTR],'\n',STRpost).
+
+  %-------------------------------------------------------------------------------------------------------------------
+  %ToString con sesion inactiva
+
+  %comentario a publicacion
+  commentTostring([CommentID,IDPost,0,[Fecha,TextoContenido],Likes,UserID],STRcomment):-
+    atomics_to_string(Fecha,'/',Datestr),
+    atomics_to_string(["ID Usuario que comenta:",UserID, "," ,"ID comentario: ",CommentID,"\n","El dia ",Datestr,"se comenta la publicacion con ID:",IDPost,"\n",TextoContenido,"\n"],' ',STR),
+    string_concat(STR,"\n",STRActual),
+    likeCommenttoString(Likes,CommentID,STRlike),
+    atomics_to_string(STRlike,' ',LiketoSTR),
+    atomic_list_concat([STRActual,LiketoSTR],' ',STRcomment).
+
+  %comentario a comentario
+  commentTostring([CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes,UserID],STRcomment):-
+    IDcomentarioQueseComenta > 0,
+    atomics_to_string(Fecha,'/',Datestr),
+    atomics_to_string(["ID Usuario que comenta:",UserID, "," ,"ID comentario: ",CommentID,"\n","El dia ",Datestr,"se comenta la publicacion con ID:",IDPost,"en particular el comentario con ID:",IDcomentarioQueseComenta,"\n",TextoContenido,"\n"],' ',STR),
+    string_concat(STR,"\n",STRActual),
+    likeCommenttoString(Likes,CommentID,STRlike),
+    atomics_to_string(STRlike,' ',LiketoSTR),
+    atomic_list_concat([STRActual,LiketoSTR],' ',STRcomment).
+
+  %comentario: (CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Like,UserID)
+  cmTostring([],[]):- !.
+  cmTostring([CommentActual|CommentSgte],[STRcmActual|STRcmSgte]):-
+    commentTostring(CommentActual,STRcomment),
+    string_concat(STRcomment,'\n',STRcmActual),
+    cmTostring(CommentSgte,STRcmSgte).
+
+  %-----
 %--------------------------------------------------------------------------------------------------------------------------------------
 %psTostring(Ps,STRps)
 psTostring([],[]):- !.
@@ -499,81 +563,30 @@ userPoststoString([[ID,Uid,Username,Date,_,_,Mensaje,Destinatarios,_,Likes]|Post
 
 
 
-userPoststoString([_|Ps],Uid,User,StrPs):-
+userPoststoString([_|Ps],[Uid,Username,_,_,_],StrPs):-
 
-    userPoststoString(Ps,Uid,User,StrPs).
-
-
+    userPoststoString(Ps,[Uid,Username,_,_,_],StrPs).
 
 
-%---------------------------------------------------------------------------------------------
-%COSAS DEL LIKE QUE DEBEN SER ORDENADAS
+
+%ToString para los comentarios de un usuario con sesion activa
+%Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes,UserID]
+
+userCommentstoString([],_,[]):- !.
+userCommentstoString([[CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes,UserID]|CmSgte],[UserID,_,_,_,_],[STRcmActual|STRcmSgte]):-
+    commentTostring([CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes,UserID],STRcomment),
+    string_concat(STRcomment,'\n',STRcmActual),
+    userCommentstoString(CmSgte,[UserID,_,_,_,_],STRcmSgte).
+
+userCommentstoString([_|Cms],[UserID,_,_,_,_],STRcm):-
+  userCommentstoString(Cms,[UserID,_,_,_,_],STRcm).
+
+
+
+
 %like: [Fecha,UserID,"Me gusta"]
 insertarNuevoLike(Lista,Date,UserID,[Nuevalista|Lista]):-
   append([Date],[UserID,"Me gusta"],Nuevalista).
-
-
-getCommentbyID([[CommentID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]|_],CommentID,[CommentID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]):- !.
-getCommentbyID([_|Tail],CommentID,Comentario):-
-  getCommentbyID(Tail,CommentID,Comentario).
-%cosas que se van a usar para el like a una publicacion
-%getListbyPosition([_|Cola],Posicion,Resultado)
-%set_ActualizarLista([_|Colalista],Elemento,1,[Elemento|Colalista]).
-%set_PostsshareUpdate(Cola,IDPost,Postmodificado,NuevoPs).
-
-%set_UsersUpdate([[UserID,_,_,_,_]|Cola],UserID,UsuarioModificado,[UsuarioModificado|Cola]).
-
-%set_UsersUpdate([[ID,Username,Password,Date,Listafollowers]|Cola],UserID,UsuarioModificado,[[ID,Username,Password,Date,Listafollowers]|NuevoUs]):-
-
-    %set_UsersUpdate(Cola,UserID,UsuarioModificado,NuevoUs).
-
-%perteneceComentarioAPublicacion([[CommentID,PostID,_,_,_]|_],CommentID,PostID).
-
-
-set_CommentsUpdate([[CommentID,_,_,_,_]|Cola],CommentID,ComentarioModificado,[ComentarioModificado|Cola]).
-set_CommentsUpdate([[CmID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]|Cola],CommentID,ComentarioModificado,[[CmID,IDPost,IDcomentarioQueseComenta,Contenido,Likes]|NuevoCm]):-
-  set_CommentsUpdate(Cola,CommentID,ComentarioModificado,NuevoCm).
-
-%socialNetworkLogout([N, Date, UserID, Us, Ps, Cm],[N, Date, -1, Us, Ps, Cm]):-UserID > -1.
-%socialNetworkLike (Sn1, Fecha, PostId, CommentId, Sn2)
-/*
-socialNetworkLike( Sn1, “2021-05-04”, 4, 0, Sn2). ; Este es un like al post con id 4.
-
-*****socialNetworkLike( Sn1, “2021-05-04”, 4, 58, Sn2). ; Este es un like al comentario con id 58 que está en el post con id 4
-*/
-
-%like a un comentario proveniente de una publicacion
-%Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes]
-%publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
-
-%like: [Fecha,UserID,"Me gusta"]
-%insertarNuevoLike(Lista,Date,UserID,[Nuevalista|Lista]):-
-%append([Date],[UserID,"Me gusta"],NuevaLista).
-%set_ActualizarLista([_|Colalista],Elemento,1,[Elemento|Colalista]).
-
-%getPostbyID(Ps,IDPost,Post)
-socialNetworkLike([N,D,UserID,Us,Ps,[LastCommentID|Cm]],Fecha,IDPost,CommentID,SocialNetworkOut):-
-  UserID > 0,
-  perteneceComentarioAPublicacion(Cm,CommentID,IDPost),
-  getCommentbyID(Cm,CommentID,Comentario),
-  getListbyPosition(Comentario,5,LikesDelComentario),
-  insertarNuevoLike(LikesDelComentario,Fecha,UserID,NuevosLikes),
-  set_ActualizarLista(Comentario,NuevosLikes,5,ComentarioActualizado),
-  set_CommentsUpdate(Cm,CommentID,ComentarioActualizado,CmActualizado),
-  set_ActualizarLista([N,D,UserID,Us,Ps,[LastCommentID|Cm]], [LastCommentID|CmActualizado],6,Salida),
-  socialNetworkLogout(Salida,SocialNetworkOut).
-
-%%set_PostsshareUpdate(Cola,IDPost,Postmodificado,NuevoPs).
-%like a una publicacion
-socialNetworkLike([N,D,UserID,Us,[LPid|Ps],Cm],Fecha,IDPost,0,SocialNetworkOut):-
-  UserID > 0,
-  getPostbyID(Ps,IDPost,Post),
-  getListbyPosition(Post,10,LikesDelaPublicacion),
-  insertarNuevoLike(LikesDelaPublicacion,Fecha,UserID,NuevosLikes),
-  set_ActualizarLista(Post,NuevosLikes,10,PostActualizado),
-  set_PostsshareUpdate(Ps,IDPost,PostActualizado,NuevoPs),
-  set_ActualizarLista([N,D,UserID,Us,[LPid|Ps],Cm],[LPid|NuevoPs],5,Salida),
-  socialNetworkLogout(Salida,SocialNetworkOut).
 
 
 
@@ -776,7 +789,7 @@ socialNetworkShare([N,D,UserID,Us,[LPid|Ps],Cm],F,IDPost,ListaUsernamesDest,SOut
     socialNetworkLogout(Salida,SOut).
 
 %--------------------------------------------------ToString-----------------------------------------------------------------------------------
-socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],_],StrOut):-
+socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],[_|Comments]],StrOut):-
 
     atomics_to_string(["#####","Red Social",Name,"#####"],' ', NameSTR),
 
@@ -802,17 +815,25 @@ socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],_],StrOut):-
 
     atom_string(PostsAtom,PostsStr),
 
+    %---------------COMENTARIOS----------
+    cmTostring(Comments,CmsListStr),
+    atomic_list_concat(CmsListStr,'',CmsAtom),
+    atom_string(CmsAtom,CmsStr),
     atomics_to_string([PresentacionSTR,UsRegistrados,UsersStr,"\n-----------------\n",
 
                         "***Publicaciones***\n",PostsStr,"\n***Fin Publicaciones***\n",
 
-                        "\n-----------------\n"],'',StrOut).
+                        "\n-----------------\n","\n-----------------\n",
+
+                                            "***Comentarios***\n",CmsStr,"\n***Fin Comentarios***\n",
+
+                                            "\n-----------------\n"],'',StrOut).
 
 
 
 %user con sesion activa
 
- socialnetworkToString([Name,Date,Uid,[_|Users],[_|Posts],_],StrOut):-
+ socialnetworkToString([Name,Date,Uid,[_|Users],[_|Posts],[_|Comments]],StrOut):-
 
     Uid > 0,
 
@@ -850,24 +871,36 @@ socialnetworkToString([Name,Date,-1,[_|Users],[_|Posts],_],StrOut):-
 
     atomic_list_concat(ShareListStr,'',ShareAtom),
 
+    atom_string(ShareAtom,SharetoSTR),
+
+    %comentarios
+    userCommentstoString(Comments,User,CommentsListStr),
+
+    atomic_list_concat(CommentsListStr,'',CommentsAtom),
+
+    atom_string(CommentsAtom,CmSTR),
+
+
     atomics_to_string([PresentacionSTR,UsRegistrados,InfoSTR,UserStr,"\n-----------------\n","***Publicaciones***\n",
 
                         PostsStr,"\n***Fin Publicaciones***\n","\n-----------------\n","***Publicaciones compartidas***\n",
 
-                        ShareAtom,"\n***Fin Publicaciones compartidas***\n","\n-----------------\n"],'',StrOut).
+                        SharetoSTR,"\n***Fin Publicaciones compartidas***\n","\n-----------------\n","\n-----------------\n","***Comentarios***\n",
+
+                                            CmSTR,"\n***Fin Comentarios***\n"],'',StrOut).
 %--------------------------------------------------Comment-----------------------------------------------------------------------------------
 %existePost(IDPost,UserID,Username,Date,CantvecesCompartidas,Tipocontenido,Contenido,UserFollowers,PersonasCompartidas,Likes,Ps)
 %primer comentario -> dirigido a una publicacion
 %comment(Sn1,Fecha,PostID,CommentID,TextoContenido,Sn2)
-%comentario: (CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Like)
-comment([N,D,UserID,Us,Ps,[0]],Fecha,IDPost,0,Contenido,[N,D,-1,Us,Ps,[1,[1,IDPost,0,[Fecha,Contenido],[]]]]):-
+%comentario: (CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Like,UserID)
+comment([N,D,UserID,Us,Ps,[0]],Fecha,IDPost,0,Contenido,[N,D,-1,Us,Ps,[1,[1,IDPost,0,[Fecha,Contenido],[],UserID]]]):-
     existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
     UserID > 0,
     fecha(_,_,_,Fecha),
     string(Contenido).
 
 %dirigido a una publicacion
-comment([N,D,UserID,Us,Ps,[LastCommentID,[LastCommentID,LastPostID,LastIDcomentarioQueseComenta,LastContenido,LastLike]|Cm]], Fecha, IDPost, 0, Contenido, [N,D,-1,Us,Ps,[NewLastCommentID,[NewLastCommentID,IDPost,0,[Fecha,Contenido],[]],[LastCommentID,LastPostID,LastIDcomentarioQueseComenta,LastContenido,LastLike]|Cm]]):-
+comment([N,D,UserID,Us,Ps,[LastCommentID,[LastCommentID,LastPostID,LastIDcomentarioQueseComenta,LastContenido,LastLike,LastUserID]|Cm]], Fecha, IDPost, 0, Contenido, [N,D,-1,Us,Ps,[NewLastCommentID,[NewLastCommentID,IDPost,0,[Fecha,Contenido],[],UserID],[LastCommentID,LastPostID,LastIDcomentarioQueseComenta,LastContenido,LastLike,LastUserID]|Cm]]):-
     NewLastCommentID is LastCommentID + 1,
     existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
     UserID > 0,
@@ -876,7 +909,7 @@ comment([N,D,UserID,Us,Ps,[LastCommentID,[LastCommentID,LastPostID,LastIDcomenta
 
 %comentario dirigido a otro comentario
 
-comment([N,D,UserID,Us,Ps,[LastCommentID|Cm]],Fecha,IDPost,CommentID,Contenido,[N,D,-1,Us,Ps,[NewLastCommentID,[NewLastCommentID,IDPost,CommentID,[Fecha,Contenido],[]]|Cm]]):-
+comment([N,D,UserID,Us,Ps,[LastCommentID|Cm]],Fecha,IDPost,CommentID,Contenido,[N,D,-1,Us,Ps,[NewLastCommentID,[NewLastCommentID,IDPost,CommentID,[Fecha,Contenido],[],UserID]|Cm]]):-
     UserID > 0,
     NewLastCommentID is LastCommentID + 1,
 existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
@@ -884,3 +917,32 @@ existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
     fecha(_,_,_,Fecha),
     string(Contenido),
     perteneceComentarioAPublicacion(Cm,CommentID,IDPost).
+
+%--------------------------------------------------socialNetworkLike-----------------------------------------------------------------------------------
+%like a un comentario proveniente de una publicacion
+%Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes]
+%publicacion = [ID,IDUser,Username,date,cantVecescompartidas,tipoContenido,contenido,listaUsernames,personasCompartidas,likes]
+
+%like: [Fecha,UserID,"Me gusta"]
+
+socialNetworkLike([N,D,UserID,Us,Ps,[LastCommentID|Cm]],Fecha,IDPost,CommentID,SocialNetworkOut):-
+  UserID > 0,
+  perteneceComentarioAPublicacion(Cm,CommentID,IDPost),
+  getCommentbyID(Cm,CommentID,Comentario),
+  getListbyPosition(Comentario,5,LikesDelComentario),
+  insertarNuevoLike(LikesDelComentario,Fecha,UserID,NuevosLikes),
+  set_ActualizarLista(Comentario,NuevosLikes,5,ComentarioActualizado),
+  set_CommentsUpdate(Cm,CommentID,ComentarioActualizado,CmActualizado),
+  set_ActualizarLista([N,D,UserID,Us,Ps,[LastCommentID|Cm]], [LastCommentID|CmActualizado],6,Salida),
+  socialNetworkLogout(Salida,SocialNetworkOut).
+
+%like a una publicacion
+socialNetworkLike([N,D,UserID,Us,[LPid|Ps],Cm],Fecha,IDPost,0,SocialNetworkOut):-
+  UserID > 0,
+  getPostbyID(Ps,IDPost,Post),
+  getListbyPosition(Post,10,LikesDelaPublicacion),
+  insertarNuevoLike(LikesDelaPublicacion,Fecha,UserID,NuevosLikes),
+  set_ActualizarLista(Post,NuevosLikes,10,PostActualizado),
+  set_PostsshareUpdate(Ps,IDPost,PostActualizado,NuevoPs),
+  set_ActualizarLista([N,D,UserID,Us,[LPid|Ps],Cm],[LPid|NuevoPs],5,Salida),
+  socialNetworkLogout(Salida,SocialNetworkOut).
