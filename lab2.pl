@@ -720,9 +720,11 @@ socialNetworkFollow([N,Date,UserID,[Lid|Us],Ps,Cm],Username,SOut):-
 
   existeUsuario(_,Username,_,_,_,Us),
 
-  getUserbyID(Us,UserID,Usuario),
+  getUserbyID(Us,UserID,[UserID,U,Password,UserDate,Followers]),
 
-  set_UserFollowersupdate(Usuario,[Username],5,UsuarioModificado),
+  not(U == Username),
+
+  set_UserFollowersupdate([UserID,U,Password,UserDate,Followers],[Username],5,UsuarioModificado),
 
   set_UsersUpdate(Us,UserID,UsuarioModificado,NewUsers),
 
