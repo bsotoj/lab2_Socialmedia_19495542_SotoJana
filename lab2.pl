@@ -15,19 +15,20 @@ Usuario: [ID,Username,Password,Date,ListaSeguidores] => Entero X String X String
 Publicacion: [ID,Date,CantidadvecesCompartidas,Tipocontenido,Contenido,ListaUsernames,PersonasCompartidas,Likes]
                 => Entero X Date X Entero X String X String X ListaUsernames X PersonasCompartidas X Likes
 Comentario: [CommentID,IDPost,IDcomentarioQueseComenta,[Fecha,TextoContenido],Likes,UserID] => Entero X Entero X Entero X [Fecha X String] X Likes
-
+like: [Fecha,UserID,"Me gusta"]
 
 ListaSeguidores: []; Username X Usernames// String X Usernames
 PersonasCompartidas:[Fecha|ListaSeguidores]
 Usuarios: []; Usuario X Usuarios
 Publicaciones: []; Publicacion X Publicaciones
 Comentarios: []; Comentario X Comentarios
+likes:[]; like X likes
 
 ListaUsuarios: [LastIdU|Usuarios]
 ListaPublicaciones: [LastPostID|Publicaciones]
 ListaComentarios: [LastCommentID|Comentarios]
 
--> no se incluyo el TDA Likes, que estaba pensado en usarse para los requerimientos extras
+
 */
 %-------------------------------------------------------------------------------------------------------
 /*
@@ -743,11 +744,11 @@ socialNetworkShare([N,D,UserID,Us,[LPid|Ps],Cm],F,IDPost,[],SOut):-
 
     existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
 
-    getPostbyID(Ps,IDPost,[IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L]),
+    getPostbyID(Ps,IDPost,[IDPost,ID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L]),
 
     set_insertarNuevoshare(PersonasCompartidas,[Username,"Todos"],F,NuevoShare),
 
-    set_ActualizarLista([IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L],NuevoShare,9,PostActualizado),
+    set_ActualizarLista([IDPost,ID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L],NuevoShare,9,PostActualizado),
 
     set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
 
@@ -774,13 +775,13 @@ socialNetworkShare([N,D,UserID,Us,[LPid|Ps],Cm],F,IDPost,ListaUsernamesDest,SOut
 
     existePost(IDPost,_,_,_,_,_,_,_,_,_,Ps),
 
-    getPostbyID(Ps,IDPost,[IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L]),
+    getPostbyID(Ps,IDPost,[IDPost,ID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L]),
 
     append([Username],ListaUsernamesDest,NuevosUsuarios),
 
     set_insertarNuevoshare(PersonasCompartidas,NuevosUsuarios,F,NuevoShare),
 
-    set_ActualizarLista([IDPost,UserID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L],NuevoShare,9,PostActualizado),
+    set_ActualizarLista([IDPost,ID,U,Fecha,CantidadvecesCompartidas,TipoContenido,Contenido,ListaUsuarios,PersonasCompartidas,L],NuevoShare,9,PostActualizado),
 
     set_PostsshareUpdate(Ps,IDPost,PostActualizado,Newposts),
 
@@ -946,3 +947,153 @@ socialNetworkLike([N,D,UserID,Us,[LPid|Ps],Cm],Fecha,IDPost,0,SocialNetworkOut):
   set_PostsshareUpdate(Ps,IDPost,PostActualizado,NuevoPs),
   set_ActualizarLista([N,D,UserID,Us,[LPid|Ps],Cm],[LPid|NuevoPs],5,Salida),
   socialNetworkLogout(Salida,SocialNetworkOut).
+
+  %-----------------------------------------EJEMPLOS---------------------------------------------------------------------------------------------
+  %Si se desea ejecutar en SWISH--SWI-PROLOG se debe copiar y pegar la base de conocimientos, luego para hacer la consulta se copia y pega el ejemplo completo y se selecciona la opccion "run!"
+/*
+EJEMPLO 1
+fecha(20,5,2000,F),socialNetwork("failbok",F,Sn1),
+fecha(13,4,2001,FechaUsuario1),
+fecha(4,1,2001,FechaUsuario2),
+fecha(5,2,2001,FechaUsuario3),
+socialNetworkRegister(Sn1,FechaUsuario1,"hugo","contrasena1",Sn2),
+socialNetworkRegister(Sn2,FechaUsuario2,"paco","contrasena2",Sn3),
+socialNetworkRegister(Sn3,FechaUsuario3,"luis","contrasena3",Sn4),
+socialNetworkLogin(Sn4,"paco","contrasena2",Sn5),
+socialNetworkFollow(Sn5,"luis",Sn6),
+socialNetworkLogin(Sn6,"hugo","contrasena1",Sn7),
+fecha(10,7,2005,FechaPost1),
+socialNetworkPost(Sn7,FechaPost1,"video","miPrimerPost",[],Sn8),
+fecha(9,8,2005,FechaShare1),
+socialNetworkLogin(Sn8,"paco","contrasena2",Sn9),
+socialNetworkShare(Sn9,FechaShare1,1,[],Sn10),
+fecha(1,1,2004,FechaComment1),
+fecha(1,1,2004,FechaLike1),
+socialNetworkLogin(Sn10,"luis","contrasena3",Sn11),
+comment(Sn11,FechaComment1,1,0,"Este es un comentario sobre la publicacion con id 1", Sn12),
+socialNetworkLogin(Sn12,"luis","contrasena3",Sn13),
+socialNetworkLike(Sn13,FechaLike1,1,0,Sn14),
+socialnetworkToString(Sn14,SOut),write(SOut).
+
+EJEMPLO 2
+
+fecha(20,5,2000,F),socialNetwork("failbok",F,Sn1),
+fecha(13,4,2001,FechaUsuario1),
+fecha(4,1,2001,FechaUsuario2),
+fecha(5,2,2001,FechaUsuario3),
+socialNetworkRegister(Sn1,FechaUsuario1,"hugo","contrasena1",Sn2),
+socialNetworkRegister(Sn2,FechaUsuario2,"paco","contrasena2",Sn3),
+socialNetworkRegister(Sn3,FechaUsuario3,"luis","contrasena3",Sn4),
+socialNetworkLogin(Sn4,"paco","contrasena2",Sn5),
+socialNetworkFollow(Sn5,"hugo",Sn6),
+socialNetworkLogin(Sn6,"paco","contrasena2",Sn7),
+socialNetworkFollow(Sn7,"luis",Sn8),
+socialNetworkLogin(Sn8,"paco","contrasena2",Sn9),
+fecha(15,1,2000,FechaPost1),
+socialNetworkPost(Sn9,FechaPost1,"photo","primer post a amigos",["hugo","luis"],Sn10),
+socialNetworkLogin(Sn10,"paco","contrasena2",Sn11),
+fecha(30,1,2003,FechaShare1),
+socialNetworkShare(Sn11,FechaShare1,1,["luis","hugo"],Sn12),
+socialNetworkLogin(Sn12,"luis","contrasena3",Sn13),
+fecha(30,2,2002,FechaPost2),
+socialNetworkPost(Sn13,FechaPost2,"video","segundo post",[],Sn14),
+socialNetworkLogin(Sn14,"hugo","contrasena1",Sn15),
+fecha(1,1,2005,FechaComment1),
+comment(Sn15,FechaComment1,2,0,"Este es un comentario sobre la publicacion con id 2", Sn16),
+socialNetworkLogin(Sn16,"paco","contrasena2",Sn17),
+fecha(2,2,2005,FechaLike1),
+socialNetworkLike(Sn17,FechaLike1,2,1,Sn18),
+socialNetworkLogin(Sn18,"paco","contrasena2",Sn19),
+socialnetworkToString(Sn19,SOut),write(SOut).
+
+EJEMPLO 3
+
+fecha(15,1,1998,FechaUsuario1),
+fecha(30,1,1996,FechaUsuario2),
+fecha(12,1,2001,FechaUsuario3),
+fecha(2,2,2005,FechaPost1),
+fecha(2,1,2002,FechaPost2),
+fecha(4,5,2004,FechaPost3),
+fecha(21,6,2007,FechaShare1),
+fecha(22,6,2007,FechaShare2),
+fecha(9,8,2010,FechaShare3),
+fecha(29,6,2011,FechaComment1),
+fecha(25,6,2011,FechaComment2),
+fecha(1,1,2012,FechaLike1),
+fecha(3,1,2012,FechaLike2),
+fecha(24, 5, 2021, F), socialNetwork("failbok", F, Sn1),
+socialNetworkRegister(Sn1,FechaUsuario1, "pedro", "pass1",Sn2),
+socialNetworkRegister(Sn2,FechaUsuario2,"camilo","pass2",Sn3),
+socialNetworkRegister(Sn3,FechaUsuario3,"juan","pass3",Sn4),
+socialNetworkLogin(Sn4,"camilo","pass2",Sn5),
+socialNetworkFollow(Sn5,"juan",Sn6),
+socialNetworkLogin(Sn6,"camilo","pass2",Sn7),
+socialNetworkFollow(Sn7,"pedro",Sn8),
+socialNetworkLogin(Sn8,"camilo","pass2",Sn9),
+socialNetworkPost(Sn9,FechaPost1,"video","miPrimerPost",[],Sn10),
+socialNetworkLogin(Sn10,"camilo","pass2",Sn11),
+socialNetworkPost(Sn11,FechaPost2,"photo","primer post a amigos", ["juan","pedro"],Sn12),
+socialNetworkLogin(Sn12,"camilo","pass2",Sn13),
+socialNetworkPost(Sn13,FechaPost3,"video","segundo post a amigos", ["pedro"], Sn14),
+socialNetworkLogin(Sn14,"camilo","pass2",Sn15),
+socialNetworkShare(Sn15,FechaShare1,2,[],Sn16),
+socialNetworkLogin(Sn16,"camilo","pass2",Sn17),
+socialNetworkShare(Sn17,FechaShare2,1,["juan","pedro"],Sn18),
+socialNetworkLogin(Sn18,"camilo","pass2",Sn19),
+socialNetworkShare(Sn19,FechaShare3,1,["pedro"],Sn20),
+socialNetworkLogin(Sn20,"camilo","pass2",Sn21),
+comment(Sn21,FechaComment1,2,0,"Este es un comentario sobre la publicacion con id 2" ,Sn22),
+socialNetworkLogin(Sn22,"camilo","pass2",Sn23),
+comment(Sn23,FechaComment2,2,1,"Este es un comentario sobre la publicacion con id 2, en particular sobre el comentario con id 1",Sn24),
+socialNetworkLogin(Sn24,"camilo","pass2",Sn25),
+socialNetworkLike(Sn25,FechaLike1,1,0,Sn26),
+socialNetworkLogin(Sn26,"camilo","pass2",Sn27),
+socialNetworkLike(Sn27,FechaLike2,2,1,Sn28),
+socialNetworkLogin(Sn28,"camilo","pass2",Sn29),
+socialnetworkToString(Sn29,SOut),write(SOut).
+
+--> ESTE ES EL EJEMPLO 3 PERO AHORA SOCIALNETWORKTOSTRING MUESTRA TODA LA RED SOCIAL
+
+fecha(15,1,1998,FechaUsuario1),
+fecha(30,1,1996,FechaUsuario2),
+fecha(12,1,2001,FechaUsuario3),
+fecha(2,2,2005,FechaPost1),
+fecha(2,1,2002,FechaPost2),
+fecha(4,5,2004,FechaPost3),
+fecha(21,6,2007,FechaShare1),
+fecha(22,6,2007,FechaShare2),
+fecha(9,8,2010,FechaShare3),
+fecha(29,6,2011,FechaComment1),
+fecha(25,6,2011,FechaComment2),
+fecha(1,1,2012,FechaLike1),
+fecha(3,1,2012,FechaLike2),
+fecha(24, 5, 2021, F), socialNetwork("failbok", F, Sn1),
+socialNetworkRegister(Sn1,FechaUsuario1, "pedro", "pass1",Sn2),
+socialNetworkRegister(Sn2,FechaUsuario2,"camilo","pass2",Sn3),
+socialNetworkRegister(Sn3,FechaUsuario3,"juan","pass3",Sn4),
+socialNetworkLogin(Sn4,"camilo","pass2",Sn5),
+socialNetworkFollow(Sn5,"juan",Sn6),
+socialNetworkLogin(Sn6,"camilo","pass2",Sn7),
+socialNetworkFollow(Sn7,"pedro",Sn8),
+socialNetworkLogin(Sn8,"camilo","pass2",Sn9),
+socialNetworkPost(Sn9,FechaPost1,"video","miPrimerPost",[],Sn10),
+socialNetworkLogin(Sn10,"camilo","pass2",Sn11),
+socialNetworkPost(Sn11,FechaPost2,"photo","primer post a amigos", ["juan","pedro"],Sn12),
+socialNetworkLogin(Sn12,"camilo","pass2",Sn13),
+socialNetworkPost(Sn13,FechaPost3,"video","segundo post a amigos", ["pedro"], Sn14),
+socialNetworkLogin(Sn14,"camilo","pass2",Sn15),
+socialNetworkShare(Sn15,FechaShare1,2,[],Sn16),
+socialNetworkLogin(Sn16,"camilo","pass2",Sn17),
+socialNetworkShare(Sn17,FechaShare2,1,["juan","pedro"],Sn18),
+socialNetworkLogin(Sn18,"camilo","pass2",Sn19),
+socialNetworkShare(Sn19,FechaShare3,1,["pedro"],Sn20),
+socialNetworkLogin(Sn20,"camilo","pass2",Sn21),
+comment(Sn21,FechaComment1,2,0,"Este es un comentario sobre la publicacion con id 2" ,Sn22),
+socialNetworkLogin(Sn22,"camilo","pass2",Sn23),
+comment(Sn23,FechaComment2,2,1,"Este es un comentario sobre la publicacion con id 2, en particular sobre el comentario con id 1",Sn24),
+socialNetworkLogin(Sn24,"camilo","pass2",Sn25),
+socialNetworkLike(Sn25,FechaLike1,1,0,Sn26),
+socialNetworkLogin(Sn26,"camilo","pass2",Sn27),
+socialNetworkLike(Sn27,FechaLike2,2,1,Sn28),
+socialnetworkToString(Sn28,SOut),write(SOut).
+*/
